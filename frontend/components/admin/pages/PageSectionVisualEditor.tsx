@@ -2,6 +2,7 @@
 
 import { Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
+import { RichTextEditor } from "@/components/shared/RichTextEditor";
 import type { PageSectionItem } from "@/app/admin/pages/page";
 
 export interface SectionFormState {
@@ -493,13 +494,34 @@ export function PageSectionVisualEditor({
         </div>
       )}
 
-      {/* 6. GENERIC FALLBACK FOR ANY OTHER CUSTOM SECTION TYPE */}
+      {/* 6. RICHTEXT / LEGAL / POLICY / BLOG SECTION (Tiptap) */}
+      {sec.type === "richtext" && (
+        <div className="space-y-3">
+          <div className="flex items-center justify-between">
+            <label className="block text-xs font-bold text-ink-700 uppercase tracking-wider">
+              Document Content (Rich Text Editor)
+            </label>
+            <span className="text-[11px] text-ink-400">
+              Formatted using Tiptap · Headings, lists, bold, and links
+            </span>
+          </div>
+          <RichTextEditor
+            content={secState.content?.body || ""}
+            onChange={(html) => handleSectionFieldChange(sec.id, "body", html)}
+            placeholder="Write legal policies, terms of service, article body, or rich document contents..."
+            minHeight="350px"
+          />
+        </div>
+      )}
+
+      {/* 7. GENERIC FALLBACK FOR ANY OTHER CUSTOM SECTION TYPE */}
       {sec.type !== "hero" &&
         sec.type !== "stats" &&
         sec.type !== "steps" &&
         sec.type !== "cta" &&
         sec.type !== "services_grid" &&
         sec.type !== "faq" &&
+        sec.type !== "richtext" &&
         Object.keys(secState.content || {}).map((key) => {
           const val = secState.content[key];
           if (typeof val === "object") {

@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Upload, Image as ImageIcon, X, RefreshCw, Check } from "lucide-react";
+import { Upload, Image as ImageIcon, X, RefreshCw, Check, FileText } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
@@ -12,28 +12,36 @@ export interface PickedMedia {
   path_thumb?: string | null;
   original_name: string;
   alt_text?: string | null;
+  mime?: string | null;
+  kind?: string | null;
 }
 
 interface ImagePickerDialogProps {
   open: boolean;
   title?: string;
-  /** Upload module folder, e.g. site, page, talent */
+  /** Upload module folder, e.g. site, page, talent, blog, project */
   module: string;
   /** Restrict library listing to a module; omit to show all */
   libraryModule?: string;
+  /** Custom api base endpoint; auto-detects /api/proxy/talent/media if on /talent route */
+  apiBase?: string;
+  /** Media kind filter: image (default), document, or all */
+  kind?: "image" | "document" | "all";
   onSelect: (media: PickedMedia) => void;
   onClose: () => void;
 }
 
 /**
- * Image picker with Upload + Library tabs (BOILERPLATE 4.3 #12).
- * No manual URL input — files go through the backend uploader only.
+ * Image & Media picker with Upload + Library tabs (BOILERPLATE 4.3 #12).
+ * Strictly isolated per user/account on talent endpoints.
  */
 export function ImagePickerDialog({
   open,
-  title = "Choose Image",
+  title = "Choose Media",
   module,
   libraryModule,
+  apiBase,
+  kind = "image",
   onSelect,
   onClose,
 }: ImagePickerDialogProps) {
@@ -45,6 +53,13 @@ export function ImagePickerDialog({
   const [prevOpen, setPrevOpen] = useState(open);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // Auto-detect API base URL based on route context
+  const resolvedApiBase =
+    apiBase ||
+    (typeof window !== "undefined" && window.location.pathname.startsWith("/talent")
+      ? "/api/proxy/talent/media"
+      : "/api/proxy/admin/media");
+
   if (open !== prevOpen) {
     setPrevOpen(open);
     if (open) {
@@ -55,12 +70,17 @@ export function ImagePickerDialog({
   const fetchLibrary = useCallback(async () => {
     setLoading(true);
     try {
-      const params = new URLSearchParams({ per_page: "60" });
+      const params = new URLSearchParams({ per_page: "60", own: "1" });
       if (libraryModule) params.append("module", libraryModule);
-      const res = await fetch(`/api/proxy/admin/media?${params.toString()}`);
+      if (kind && kind !== "all") params.append("kind", kind);
+      const res = await fetch(`${resolvedApiBase}?${params.toString()}`);
       const json = await res.json();
       if (res.ok && json.success) {
-        const list = (json.data?.data || []).filter((m: any) => m.kind === "image");
+        const list = (json.data?.data || []).filter((m: any) => {
+          if (kind === "all") return true;
+          if (kind === "document") return m.kind === "document" || m.mime === "application/pdf" || m.original_name?.endsWith(".pdf");
+          return m.kind === "image" || (!m.kind && m.mime?.startsWith("image/"));
+        });
         setItems(list);
       }
     } catch {
@@ -68,7 +88,7 @@ export function ImagePickerDialog({
     } finally {
       setLoading(false);
     }
-  }, [libraryModule]);
+  }, [libraryModule, kind, resolvedApiBase]);
 
   useEffect(() => {
     if (open) {
@@ -88,7 +108,11 @@ export function ImagePickerDialog({
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    if (!file.type.startsWith("image/")) {
+
+    if (kind === "document" && file.type !== "application/pdf" && !file.name.endsWith(".pdf")) {
+      toast.error("Please upload a PDF document");
+      return;
+    } else if (kind === "image" && !file.type.startsWith("image/")) {
       toast.error("Only image files are allowed here");
       return;
     }
@@ -100,7 +124,7 @@ export function ImagePickerDialog({
     fd.append("alt_text", file.name.replace(/\.[^.]+$/, "").replace(/[-_]/g, " "));
 
     try {
-      const res = await fetch("/api/proxy/admin/media", { method: "POST", body: fd });
+      const res = await fetch(resolvedApiBase, { method: "POST", body: fd });
       const json = await res.json();
       if (!res.ok || !json.success) throw new Error(json.message || "Upload failed");
       const media: PickedMedia = {
@@ -110,13 +134,15 @@ export function ImagePickerDialog({
         path_thumb: json.data.path_thumb,
         original_name: json.data.original_name,
         alt_text: json.data.alt_text,
+        mime: json.data.mime,
+        kind: json.data.kind,
       };
       setSelected(media);
       setItems((prev) => [media, ...prev]);
       setTab("library");
-      toast.success("Image uploaded");
+      toast.success(kind === "document" ? "Document uploaded" : "Image uploaded");
     } catch (err: any) {
-      toast.error(err.message || "Failed to upload image");
+      toast.error(err.message || "Failed to upload file");
     } finally {
       setUploading(false);
       if (fileInputRef.current) fileInputRef.current.value = "";
@@ -181,21 +207,31 @@ export function ImagePickerDialog({
               <input
                 type="file"
                 ref={fileInputRef}
-                accept="image/*"
+                accept={kind === "document" ? ".pdf,application/pdf" : "image/*"}
                 onChange={handleUpload}
                 className="hidden"
               />
               {uploading ? (
                 <>
                   <RefreshCw className="w-8 h-8 animate-spin mx-auto text-brand-500 mb-3" />
-                  <p className="text-sm font-bold text-ink-900">Uploading & converting to WebP...</p>
+                  <p className="text-sm font-bold text-ink-900">
+                    {kind === "document" ? "Uploading document..." : "Uploading & converting to WebP..."}
+                  </p>
                 </>
               ) : (
                 <>
-                  <Upload className="w-8 h-8 mx-auto text-ink-400 mb-3" />
-                  <p className="text-sm font-bold text-ink-900">Click to upload an image</p>
+                  {kind === "document" ? (
+                    <FileText className="w-8 h-8 mx-auto text-ink-400 mb-3" />
+                  ) : (
+                    <Upload className="w-8 h-8 mx-auto text-ink-400 mb-3" />
+                  )}
+                  <p className="text-sm font-bold text-ink-900">
+                    {kind === "document" ? "Click to upload a PDF document" : "Click to upload an image"}
+                  </p>
                   <p className="text-xs text-ink-500 mt-1">
-                    PNG, JPG, WebP or GIF — converted automatically. Stored in module &ldquo;{module}&rdquo;.
+                    {kind === "document"
+                      ? `PDF document (max 5 MB). Stored in module "${module}".`
+                      : `PNG, JPG, WebP or GIF — converted automatically. Stored in module "${module}".`}
                   </p>
                 </>
               )}
@@ -207,31 +243,53 @@ export function ImagePickerDialog({
             </div>
           ) : items.length === 0 ? (
             <div className="py-16 text-center">
-              <ImageIcon className="w-10 h-10 text-ink-300 mx-auto mb-3" />
-              <p className="text-sm font-bold text-ink-700">No images in library</p>
+              {kind === "document" ? (
+                <FileText className="w-10 h-10 text-ink-300 mx-auto mb-3" />
+              ) : (
+                <ImageIcon className="w-10 h-10 text-ink-300 mx-auto mb-3" />
+              )}
+              <p className="text-sm font-bold text-ink-700">
+                {kind === "document" ? "No documents in library" : "No images in library"}
+              </p>
               <p className="text-xs text-ink-400 mt-1">Switch to the Upload tab to add one.</p>
             </div>
           ) : (
             <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
               {items.map((m) => {
                 const isSelected = selected?.id === m.id;
+                const isDocument =
+                  m.kind === "document" ||
+                  m.mime === "application/pdf" ||
+                  m.original_name?.endsWith(".pdf");
                 return (
                   <button
                     key={m.id}
                     onClick={() => setSelected(m)}
                     className={cn(
-                      "relative aspect-square rounded-2xl overflow-hidden border-2 transition cursor-pointer group",
-                      isSelected ? "border-brand-500 ring-2 ring-brand-500/40" : "border-transparent hover:border-ink-300"
+                      "relative aspect-square rounded-2xl overflow-hidden border-2 transition cursor-pointer group flex flex-col items-center justify-center text-center p-2",
+                      isSelected
+                        ? "border-brand-500 ring-2 ring-brand-500/40 bg-brand-50/40"
+                        : "border-neutral-200 hover:border-ink-300 bg-neutral-50"
                     )}
                   >
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
-                      src={previewOf(m)}
-                      alt={m.alt_text || m.original_name}
-                      className="w-full h-full object-cover"
-                    />
+                    {isDocument ? (
+                      <div className="flex flex-col items-center justify-center p-2 w-full">
+                        <FileText className="w-8 h-8 text-brand-600 mb-1" />
+                        <span className="text-[10px] font-bold text-ink-900 truncate max-w-full px-1">
+                          {m.original_name}
+                        </span>
+                        <span className="text-[9px] text-ink-400 uppercase font-mono mt-0.5">PDF</span>
+                      </div>
+                    ) : (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={previewOf(m)}
+                        alt={m.alt_text || m.original_name}
+                        className="w-full h-full object-cover"
+                      />
+                    )}
                     {isSelected && (
-                      <span className="absolute top-2 right-2 w-6 h-6 rounded-full bg-brand-500 text-ink-900 flex items-center justify-center">
+                      <span className="absolute top-2 right-2 w-6 h-6 rounded-full bg-brand-500 text-ink-900 flex items-center justify-center shadow-xs">
                         <Check className="w-3.5 h-3.5" />
                       </span>
                     )}

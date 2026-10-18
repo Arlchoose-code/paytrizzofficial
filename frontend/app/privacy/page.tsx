@@ -20,6 +20,15 @@ export default async function PrivacyPage() {
   const publicSettings = await getPublicSettings().catch(() => undefined);
   const siteName = publicSettings?.site_name || "PayTrizz";
 
+  const apiBase = (process.env.INTERNAL_BACKEND_URL || process.env.API_URL || "http://127.0.0.1:8080/api").replace(/\/+$/, "");
+  const pageData = await fetch(`${apiBase}/pages/privacy`, { cache: "no-store" })
+    .then((r) => (r.ok ? r.json() : null))
+    .then((j) => j?.data)
+    .catch(() => null);
+
+  const richtextSection = pageData?.sections?.find((s: any) => s.type === "richtext" || s.key === "content");
+  const dynamicBodyHtml = richtextSection?.content?.body;
+
   return (
     <div className="min-h-screen flex flex-col bg-white">
       <Navbar initialSettings={publicSettings} />
@@ -33,23 +42,29 @@ export default async function PrivacyPage() {
               <span>Legal & Compliance</span>
             </div>
             <h1 className="text-3xl sm:text-5xl font-extrabold tracking-tight text-ink-900">
-              Privacy Policy
+              {pageData?.title || "Privacy Policy"}
             </h1>
             <p className="text-neutral-500 text-sm">
               Last updated: October 2026 • Effective immediately
             </p>
           </div>
 
-          {/* Content */}
-          <div className="space-y-10 text-neutral-700 leading-relaxed text-base sm:text-lg">
-            <section className="space-y-3">
-              <h2 className="text-xl sm:text-2xl font-bold text-ink-900 flex items-center gap-2">
-                <Eye className="w-5 h-5 text-brand-500" />
-                1. Information We Collect
-              </h2>
-              <p>
-                When you interact with {siteName}, we collect information you provide directly to us:
-              </p>
+          {/* Dynamic Content from CMS or Fallback */}
+          {dynamicBodyHtml ? (
+            <div
+              className="prose prose-lg max-w-none text-neutral-700 leading-relaxed font-sans prose-headings:font-extrabold prose-headings:text-ink-900 prose-a:text-brand-600 prose-a:font-bold prose-strong:text-ink-900"
+              dangerouslySetInnerHTML={{ __html: dynamicBodyHtml }}
+            />
+          ) : (
+            <div className="space-y-10 text-neutral-700 leading-relaxed text-base sm:text-lg">
+              <section className="space-y-3">
+                <h2 className="text-xl sm:text-2xl font-bold text-ink-900 flex items-center gap-2">
+                  <Eye className="w-5 h-5 text-brand-500" />
+                  1. Information We Collect
+                </h2>
+                <p>
+                  When you interact with {siteName}, we collect information you provide directly to us:
+                </p>
               <ul className="list-disc pl-6 space-y-2 text-neutral-600 text-base">
                 <li><strong>Contact & Proposal Details:</strong> Name, work email address, company name, phone number, and project scope submitted via our inquiry and proposal forms.</li>
                 <li><strong>Talent Profiles & Portfolios:</strong> Resumes, CV documents, portfolio links, skill tags, and billing details provided during talent registration or profile updates.</li>
@@ -102,6 +117,7 @@ export default async function PrivacyPage() {
               </p>
             </section>
           </div>
+        )}
         </div>
       </main>
 

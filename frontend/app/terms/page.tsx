@@ -20,6 +20,15 @@ export default async function TermsPage() {
   const publicSettings = await getPublicSettings().catch(() => undefined);
   const siteName = publicSettings?.site_name || "PayTrizz";
 
+  const apiBase = (process.env.INTERNAL_BACKEND_URL || process.env.API_URL || "http://127.0.0.1:8080/api").replace(/\/+$/, "");
+  const pageData = await fetch(`${apiBase}/pages/terms`, { cache: "no-store" })
+    .then((r) => (r.ok ? r.json() : null))
+    .then((j) => j?.data)
+    .catch(() => null);
+
+  const richtextSection = pageData?.sections?.find((s: any) => s.type === "richtext" || s.key === "content");
+  const dynamicBodyHtml = richtextSection?.content?.body;
+
   return (
     <div className="min-h-screen flex flex-col bg-white">
       <Navbar initialSettings={publicSettings} />
@@ -33,23 +42,29 @@ export default async function TermsPage() {
               <span>Terms & Conditions</span>
             </div>
             <h1 className="text-3xl sm:text-5xl font-extrabold tracking-tight text-ink-900">
-              Terms of Service
+              {pageData?.title || "Terms of Service"}
             </h1>
             <p className="text-neutral-500 text-sm">
               Last updated: October 2026 • Governs all engagements on {siteName}
             </p>
           </div>
 
-          {/* Content */}
-          <div className="space-y-10 text-neutral-700 leading-relaxed text-base sm:text-lg">
-            <section className="space-y-3">
-              <h2 className="text-xl sm:text-2xl font-bold text-ink-900 flex items-center gap-2">
-                <CheckCircle2 className="w-5 h-5 text-brand-500" />
-                1. Acceptance of Terms
-              </h2>
-              <p>
-                By accessing, browsing, or utilizing the services provided by {siteName} (&ldquo;Platform&rdquo;, &ldquo;we&rdquo;, &ldquo;our&rdquo;), whether as a client seeking engineering squad services or as a vetted specialist, you acknowledge and agree to be bound by these Terms of Service. If you disagree with any part of these terms, you must refrain from using the Platform.
-              </p>
+          {/* Dynamic Content from CMS or Fallback */}
+          {dynamicBodyHtml ? (
+            <div
+              className="prose prose-lg max-w-none text-neutral-700 leading-relaxed font-sans prose-headings:font-extrabold prose-headings:text-ink-900 prose-a:text-brand-600 prose-a:font-bold prose-strong:text-ink-900"
+              dangerouslySetInnerHTML={{ __html: dynamicBodyHtml }}
+            />
+          ) : (
+            <div className="space-y-10 text-neutral-700 leading-relaxed text-base sm:text-lg">
+              <section className="space-y-3">
+                <h2 className="text-xl sm:text-2xl font-bold text-ink-900 flex items-center gap-2">
+                  <CheckCircle2 className="w-5 h-5 text-brand-500" />
+                  1. Acceptance of Terms
+                </h2>
+                <p>
+                  By accessing, browsing, or utilizing the services provided by {siteName} (&ldquo;Platform&rdquo;, &ldquo;we&rdquo;, &ldquo;our&rdquo;), whether as a client seeking engineering squad services or as a vetted specialist, you acknowledge and agree to be bound by these Terms of Service. If you disagree with any part of these terms, you must refrain from using the Platform.
+                </p>
             </section>
 
             <section className="space-y-3">
@@ -100,6 +115,7 @@ export default async function TermsPage() {
               </p>
             </section>
           </div>
+        )}
         </div>
       </main>
 

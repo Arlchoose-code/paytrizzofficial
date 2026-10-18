@@ -4,13 +4,11 @@ import { Upload, FileText, Mail, Image as ImageIcon } from "lucide-react";
 
 interface ProfileBasicTabProps {
   avatarPreviewUrl: string;
-  avatarInputRef: React.RefObject<HTMLInputElement | null>;
-  uploadingAvatar: boolean;
-  handleAvatarFileChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onOpenAvatarPicker: () => void;
+  onRemoveAvatar?: () => void;
   cvFileName: string;
-  cvInputRef: React.RefObject<HTMLInputElement | null>;
-  uploadingCV: boolean;
-  handleCVFileChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onOpenCVPicker: () => void;
+  onRemoveCV?: () => void;
   headline: string;
   setHeadline: (v: string) => void;
   location: string;
@@ -29,13 +27,11 @@ interface ProfileBasicTabProps {
 
 export function ProfileBasicTab({
   avatarPreviewUrl,
-  avatarInputRef,
-  uploadingAvatar,
-  handleAvatarFileChange,
+  onOpenAvatarPicker,
+  onRemoveAvatar,
   cvFileName,
-  cvInputRef,
-  uploadingCV,
-  handleCVFileChange,
+  onOpenCVPicker,
+  onRemoveCV,
   headline,
   setHeadline,
   location,
@@ -70,22 +66,25 @@ export function ProfileBasicTab({
           <div className="space-y-1.5">
             <p className="text-xs font-bold text-ink-900">Profile Photo</p>
             <p className="text-[11px] text-ink-500">4:5 ratio · converted to WebP automatically</p>
-            <input
-              type="file"
-              ref={avatarInputRef}
-              accept="image/*"
-              onChange={handleAvatarFileChange}
-              className="hidden"
-            />
-            <button
-              type="button"
-              onClick={() => avatarInputRef.current?.click()}
-              disabled={uploadingAvatar}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold bg-white border border-ink-200 hover:border-brand-500 text-ink-800 transition cursor-pointer"
-            >
-              <Upload className="w-3.5 h-3.5" />
-              {uploadingAvatar ? "Uploading..." : avatarPreviewUrl ? "Replace Photo" : "Upload Photo"}
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={onOpenAvatarPicker}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold bg-white border border-ink-200 hover:border-brand-500 text-ink-800 transition cursor-pointer"
+              >
+                <Upload className="w-3.5 h-3.5" />
+                <span>{avatarPreviewUrl ? "Change Photo" : "Choose Photo"}</span>
+              </button>
+              {avatarPreviewUrl && onRemoveAvatar && (
+                <button
+                  type="button"
+                  onClick={onRemoveAvatar}
+                  className="px-2 py-1 text-xs text-danger hover:underline cursor-pointer"
+                >
+                  Remove
+                </button>
+              )}
+            </div>
           </div>
         </div>
 
@@ -98,22 +97,25 @@ export function ProfileBasicTab({
             <p className="text-[11px] text-ink-500">
               {cvFileName ? `Current: ${cvFileName}` : "Upload PDF resume (max 5 MB)"}
             </p>
-            <input
-              type="file"
-              ref={cvInputRef}
-              accept="application/pdf"
-              onChange={handleCVFileChange}
-              className="hidden"
-            />
-            <button
-              type="button"
-              onClick={() => cvInputRef.current?.click()}
-              disabled={uploadingCV}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold bg-white border border-ink-200 hover:border-brand-500 text-ink-800 transition cursor-pointer"
-            >
-              <Upload className="w-3.5 h-3.5" />
-              {uploadingCV ? "Uploading..." : cvFileName ? "Replace CV" : "Upload CV"}
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={onOpenCVPicker}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold bg-white border border-ink-200 hover:border-brand-500 text-ink-800 transition cursor-pointer"
+              >
+                <Upload className="w-3.5 h-3.5" />
+                <span>{cvFileName ? "Change CV" : "Choose CV (PDF)"}</span>
+              </button>
+              {cvFileName && onRemoveCV && (
+                <button
+                  type="button"
+                  onClick={onRemoveCV}
+                  className="px-2 py-1 text-xs text-danger hover:underline cursor-pointer"
+                >
+                  Remove
+                </button>
+              )}
+            </div>
           </div>
         </div>
       </div>

@@ -51,8 +51,8 @@ interface TalentProjectModalProps {
   result: string;
   setResult: (v: string) => void;
   coverPreviewUrl: string;
-  uploadingCover: boolean;
-  handleCoverUpload: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onOpenPicker: () => void;
+  onRemoveCover?: () => void;
   availableTags: { id: number; name: string }[];
   selectedTagIds: number[];
   toggleTag: (tagId: number) => void;
@@ -88,8 +88,8 @@ export function TalentProjectModal({
   result,
   setResult,
   coverPreviewUrl,
-  uploadingCover,
-  handleCoverUpload,
+  onOpenPicker,
+  onRemoveCover,
   availableTags,
   selectedTagIds,
   toggleTag,
@@ -281,24 +281,37 @@ export function TalentProjectModal({
               Cover Image
             </label>
             <div className="flex items-center gap-4 p-3 bg-neutral-50 rounded-xl border border-ink-100">
-              {coverPreviewUrl && (
+              {coverPreviewUrl ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
                   src={coverPreviewUrl}
                   alt="Cover"
-                  className="w-16 h-12 rounded-lg object-cover"
+                  className="w-16 h-12 rounded-lg object-cover border border-neutral-200"
                 />
+              ) : (
+                <div className="w-16 h-12 rounded-lg bg-ink-100 border border-ink-200 flex items-center justify-center text-ink-400 text-[10px]">
+                  No Cover
+                </div>
               )}
-              <label className="cursor-pointer inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold bg-white border border-ink-200 hover:border-brand-500 transition">
-                <Upload className="w-3.5 h-3.5" />
-                <span>{uploadingCover ? "Uploading..." : "Upload Cover Image"}</span>
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={handleCoverUpload}
-                  className="hidden"
-                />
-              </label>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={onOpenPicker}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold bg-white border border-ink-200 hover:border-brand-500 text-ink-800 transition cursor-pointer"
+                >
+                  <Upload className="w-3.5 h-3.5" />
+                  <span>{coverPreviewUrl ? "Change Cover Image" : "Choose Cover Image"}</span>
+                </button>
+                {coverPreviewUrl && onRemoveCover && (
+                  <button
+                    type="button"
+                    onClick={onRemoveCover}
+                    className="px-2 py-1 text-xs text-danger hover:underline cursor-pointer"
+                  >
+                    Remove
+                  </button>
+                )}
+              </div>
             </div>
           </div>
 

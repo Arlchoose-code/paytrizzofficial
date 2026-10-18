@@ -14,6 +14,7 @@ import {
 import { toast } from "sonner";
 import { RichTextEditor } from "@/components/shared/RichTextEditor";
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
+import { ImagePickerDialog, PickedMedia } from "@/components/shared/ImagePickerDialog";
 import { cn } from "@/lib/utils";
 
 interface PostItem {
@@ -52,7 +53,7 @@ export default function TalentBlogPage() {
   const [status, setStatus] = useState("pending");
   const [coverMediaId, setCoverMediaId] = useState<number | null>(null);
   const [coverPreviewUrl, setCoverPreviewUrl] = useState("");
-  const [uploadingCover, setUploadingCover] = useState(false);
+  const [pickerOpen, setPickerOpen] = useState(false);
   const [deleteTargetId, setDeleteTargetId] = useState<number | null>(null);
   const [deleting, setDeleting] = useState(false);
 
@@ -105,29 +106,10 @@ export default function TalentBlogPage() {
     setModalOpen(true);
   };
 
-  const handleCoverUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    setUploadingCover(true);
-    const fd = new FormData();
-    fd.append("file", file);
-    fd.append("module", "posts");
-    fd.append("alt_text", `${title || "Article"} cover`);
-
-    try {
-      const res = await fetch("/api/proxy/talent/media", { method: "POST", body: fd });
-      const json = await res.json();
-      if (!res.ok) throw new Error(json.message || "Failed to upload image");
-
-      setCoverMediaId(json.data.id);
-      setCoverPreviewUrl(json.data.path_medium || json.data.path_original);
-      toast.success("Cover image uploaded");
-    } catch (err: any) {
-      toast.error(err.message || "Failed to upload cover");
-    } finally {
-      setUploadingCover(false);
-    }
+  const handleCoverSelect = (media: PickedMedia) => {
+    setCoverMediaId(media.id);
+    setCoverPreviewUrl(media.path_medium || media.path_original || "");
+    toast.success("Cover image selected");
   };
 
   const handleSave = async (e: React.FormEvent) => {
@@ -424,24 +406,40 @@ export default function TalentBlogPage() {
                     Cover Image
                   </label>
                   <div className="flex items-center gap-4 p-3 bg-neutral-50 rounded-xl border border-ink-100">
-                    {coverPreviewUrl && (
+                    {coverPreviewUrl ? (
                       // eslint-disable-next-line @next/next/no-img-element
                       <img
                         src={coverPreviewUrl}
                         alt="Cover"
-                        className="w-16 h-12 rounded-lg object-cover"
+                        className="w-16 h-12 rounded-lg object-cover border border-neutral-200"
                       />
+                    ) : (
+                      <div className="w-16 h-12 rounded-lg bg-ink-100 border border-ink-200 flex items-center justify-center text-ink-400 text-[10px]">
+                        No Cover
+                      </div>
                     )}
-                    <label className="cursor-pointer inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold bg-white border border-ink-200 hover:border-brand-500 transition">
-                      <Upload className="w-3.5 h-3.5" />
-                      <span>{uploadingCover ? "Uploading..." : "Upload Cover Image"}</span>
-                      <input
-                        type="file"
-                        accept="image/*"
-                        onChange={handleCoverUpload}
-                        className="hidden"
-                      />
-                    </label>
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setPickerOpen(true)}
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold bg-white border border-ink-200 hover:border-brand-500 text-ink-800 transition cursor-pointer"
+                      >
+                        <Upload className="w-3.5 h-3.5" />
+                        <span>{coverPreviewUrl ? "Change Cover Image" : "Choose Cover Image"}</span>
+                      </button>
+                      {coverPreviewUrl && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setCoverMediaId(null);
+                            setCoverPreviewUrl("");
+                          }}
+                          className="px-2 py-1 text-xs text-danger hover:underline cursor-pointer"
+                        >
+                          Remove
+                        </button>
+                      )}
+                    </div>
                   </div>
                 </div>
 
@@ -505,6 +503,15 @@ export default function TalentBlogPage() {
           </div>
         )}
       </div>
+
+      <ImagePickerDialog
+        open={pickerOpen}
+        onClose={() => setPickerOpen(false)}
+        title="Choose Article Cover Image"
+        module="blog"
+        libraryModule="blog"
+        onSelect={handleCoverSelect}
+      />
 
       <ConfirmDialog
         open={deleteTargetId !== null}

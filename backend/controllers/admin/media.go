@@ -37,7 +37,22 @@ func (ctrl *MediaController) Index(c *gin.Context) {
 
 	db := config.DB.Model(&models.Media{})
 
+	roleVal, _ := c.Get("Role")
+	userIDVal, _ := c.Get("UserID")
+
+	// Strict multi-tenant isolation: Talents can ONLY list their own uploaded media.
+	// Also applies whenever ?own=1 or ?isolated=1 is passed (e.g. ImagePickerDialog per-account isolation).
+	if (roleVal == models.RoleTalent || c.Query("own") == "1" || c.Query("isolated") == "1") && userIDVal != nil {
+		uid := userIDVal.(uint64)
+		db = db.Where("uploaded_by_id = ?", uid)
+	}
+
 	if module := c.Query("module"); module != "" {
+		if module == "posts" || module == "post" {
+			module = "blog"
+		} else if module == "projects" {
+			module = "project"
+		}
 		db = db.Where("module = ?", module)
 	}
 
@@ -231,6 +246,15 @@ func (ctrl *MediaController) Destroy(c *gin.Context) {
 	if userIDVal != nil {
 		uid := userIDVal.(uint64)
 		userID = &uid
+	}
+
+	roleVal, _ := c.Get("Role")
+	if (roleVal == models.RoleTalent || c.Query("own") == "1") && userIDVal != nil {
+		uid := userIDVal.(uint64)
+		if media.UploadedByID == nil || *media.UploadedByID != uid {
+			helpers.RespondError(c, http.StatusForbidden, "You do not have permission to delete this media")
+			return
+		}
 	}
 
 	if err := ctrl.uploadService.DeleteMedia(media.ID); err != nil {

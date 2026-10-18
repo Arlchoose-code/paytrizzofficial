@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
+import { ImagePickerDialog, PickedMedia } from "@/components/shared/ImagePickerDialog";
 import { cn } from "@/lib/utils";
 import { TalentProjectModal, type ProjectItem } from "@/components/talent/TalentProjectModal";
 
@@ -42,7 +43,7 @@ export default function TalentProjectsPage() {
   const [status, setStatus] = useState("pending");
   const [coverMediaId, setCoverMediaId] = useState<number | null>(null);
   const [coverPreviewUrl, setCoverPreviewUrl] = useState("");
-  const [uploadingCover, setUploadingCover] = useState(false);
+  const [pickerOpen, setPickerOpen] = useState(false);
 
   const fetchProjects = async () => {
     setLoading(true);
@@ -105,29 +106,10 @@ export default function TalentProjectsPage() {
     setModalOpen(true);
   };
 
-  const handleCoverUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    setUploadingCover(true);
-    const fd = new FormData();
-    fd.append("file", file);
-    fd.append("module", "projects");
-    fd.append("alt_text", `${title || "Project"} cover`);
-
-    try {
-      const res = await fetch("/api/proxy/talent/media", { method: "POST", body: fd });
-      const json = await res.json();
-      if (!res.ok) throw new Error(json.message || "Failed to upload image");
-
-      setCoverMediaId(json.data.id);
-      setCoverPreviewUrl(json.data.path_medium || json.data.path_original);
-      toast.success("Cover image uploaded");
-    } catch (err: any) {
-      toast.error(err.message || "Failed to upload cover");
-    } finally {
-      setUploadingCover(false);
-    }
+  const handleCoverSelect = (media: PickedMedia) => {
+    setCoverMediaId(media.id);
+    setCoverPreviewUrl(media.path_medium || media.path_original || "");
+    toast.success("Cover image selected");
   };
 
   const handleSave = async (e: React.FormEvent) => {
@@ -359,8 +341,11 @@ export default function TalentProjectsPage() {
           result={result}
           setResult={setResult}
           coverPreviewUrl={coverPreviewUrl}
-          uploadingCover={uploadingCover}
-          handleCoverUpload={handleCoverUpload}
+          onOpenPicker={() => setPickerOpen(true)}
+          onRemoveCover={() => {
+            setCoverMediaId(null);
+            setCoverPreviewUrl("");
+          }}
           availableTags={availableTags}
           selectedTagIds={selectedTagIds}
           toggleTag={toggleTag}
@@ -370,6 +355,15 @@ export default function TalentProjectsPage() {
           handleSave={handleSave}
         />
       </div>
+
+      <ImagePickerDialog
+        open={pickerOpen}
+        onClose={() => setPickerOpen(false)}
+        title="Choose Project Cover Image"
+        module="project"
+        libraryModule="project"
+        onSelect={handleCoverSelect}
+      />
 
       <ConfirmDialog
         open={deleteTargetId !== null}

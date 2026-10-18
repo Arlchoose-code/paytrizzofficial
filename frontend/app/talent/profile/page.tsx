@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { DashboardLayout } from "@/components/shared/DashboardLayout";
 import { toast } from "sonner";
 import {
@@ -22,6 +22,7 @@ import { ProfileSkillsTab, SkillItem, CatalogSkill } from "@/components/talent/P
 import { ProfileLinksTab, LinkItem } from "@/components/talent/ProfileLinksTab";
 import { ProfileBasicTab } from "@/components/talent/ProfileBasicTab";
 import { ProfileBioTab } from "@/components/talent/ProfileBioTab";
+import { ImagePickerDialog, PickedMedia } from "@/components/shared/ImagePickerDialog";
 
 type ProfileTab = "basic" | "bio" | "skills" | "experience" | "education" | "links";
 
@@ -31,11 +32,8 @@ export default function TalentProfileEditorPage() {
   const [activeTab, setActiveTab] = useState<ProfileTab>("basic");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [uploadingAvatar, setUploadingAvatar] = useState(false);
-  const [uploadingCV, setUploadingCV] = useState(false);
-
-  const avatarInputRef = useRef<HTMLInputElement>(null);
-  const cvInputRef = useRef<HTMLInputElement>(null);
+  const [avatarPickerOpen, setAvatarPickerOpen] = useState(false);
+  const [cvPickerOpen, setCvPickerOpen] = useState(false);
 
   const [avatarMediaId, setAvatarMediaId] = useState<number | null>(null);
   const [avatarPreviewUrl, setAvatarPreviewUrl] = useState<string>("");
@@ -135,71 +133,16 @@ export default function TalentProfileEditorPage() {
     loadData();
   }, []);
 
-  const handleFileUpload = async (
-    file: File,
-    module: string,
-    altText: string,
-    onDone: (json: any) => void,
-    setBusy: (v: boolean) => void,
-    errorLabel: string
-  ) => {
-    setBusy(true);
-    const formData = new FormData();
-    formData.append("file", file);
-    formData.append("module", module);
-    formData.append("alt_text", altText);
-    try {
-      const res = await fetch("/api/proxy/talent/media", { method: "POST", body: formData });
-      const json = await res.json();
-      if (!res.ok) throw new Error(json.message || errorLabel);
-      onDone(json.data);
-    } catch (err: any) {
-      toast.error(err.message || errorLabel);
-    } finally {
-      setBusy(false);
-    }
+  const handleAvatarSelect = (media: PickedMedia) => {
+    setAvatarMediaId(media.id);
+    setAvatarPreviewUrl(media.path_medium || media.path_original || "");
+    toast.success("Profile photo selected");
   };
 
-  const handleAvatarFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    if (!file.type.startsWith("image/")) {
-      toast.error("Please select a valid image (PNG, JPG, WebP)");
-      return;
-    }
-    handleFileUpload(
-      file,
-      "talent",
-      `${talentData?.name || "Talent"} profile photo`,
-      (data) => {
-        setAvatarMediaId(data.id);
-        setAvatarPreviewUrl(data.path_medium || data.path_original);
-        toast.success("Profile photo uploaded");
-      },
-      setUploadingAvatar,
-      "Failed to upload photo"
-    );
-  };
-
-  const handleCVFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    if (file.type !== "application/pdf") {
-      toast.error("CV must be a PDF document");
-      return;
-    }
-    handleFileUpload(
-      file,
-      "talent",
-      "CV Resume Document",
-      (data) => {
-        setCvMediaId(data.id);
-        setCvFileName(file.name);
-        toast.success("CV uploaded successfully");
-      },
-      setUploadingCV,
-      "Failed to upload CV"
-    );
+  const handleCVSelect = (media: PickedMedia) => {
+    setCvMediaId(media.id);
+    setCvFileName(media.original_name || "Resume.pdf");
+    toast.success("CV document selected");
   };
 
   const handleSave = async (e?: React.FormEvent) => {
@@ -353,13 +296,17 @@ export default function TalentProfileEditorPage() {
             {activeTab === "basic" && (
               <ProfileBasicTab
                 avatarPreviewUrl={avatarPreviewUrl}
-                avatarInputRef={avatarInputRef}
-                uploadingAvatar={uploadingAvatar}
-                handleAvatarFileChange={handleAvatarFileChange}
+                onOpenAvatarPicker={() => setAvatarPickerOpen(true)}
+                onRemoveAvatar={() => {
+                  setAvatarMediaId(null);
+                  setAvatarPreviewUrl("");
+                }}
                 cvFileName={cvFileName}
-                cvInputRef={cvInputRef}
-                uploadingCV={uploadingCV}
-                handleCVFileChange={handleCVFileChange}
+                onOpenCVPicker={() => setCvPickerOpen(true)}
+                onRemoveCV={() => {
+                  setCvMediaId(null);
+                  setCvFileName("");
+                }}
                 headline={headline}
                 setHeadline={setHeadline}
                 location={location}
@@ -457,6 +404,28 @@ export default function TalentProfileEditorPage() {
           </div>
         </div>
       </div>
+
+      {/* Avatar Image Picker */}
+      <ImagePickerDialog
+        open={avatarPickerOpen}
+        onClose={() => setAvatarPickerOpen(false)}
+        title="Choose Profile Avatar"
+        module="talent"
+        libraryModule="talent"
+        kind="image"
+        onSelect={handleAvatarSelect}
+      />
+
+      {/* CV Document Picker */}
+      <ImagePickerDialog
+        open={cvPickerOpen}
+        onClose={() => setCvPickerOpen(false)}
+        title="Choose or Upload CV Document (PDF)"
+        module="talent"
+        libraryModule="talent"
+        kind="document"
+        onSelect={handleCVSelect}
+      />
     </DashboardLayout>
   );
 }

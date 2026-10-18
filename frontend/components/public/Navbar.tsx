@@ -80,14 +80,8 @@ export function Navbar({ initialSettings }: NavbarProps) {
             })}
           </div>
 
-          {/* Right: Portal Login & Get in Touch CTA */}
+          {/* Right: Get in Touch CTA */}
           <div className="hidden md:flex items-center gap-3">
-            <Link
-              href="/login"
-              className="text-sm font-medium text-ink-700 hover:text-ink-900 px-3 py-1.5 transition-colors"
-            >
-              Sign In
-            </Link>
             <Link
               href="/contact"
               className="inline-flex items-center gap-1.5 bg-brand-500 text-ink-900 font-bold px-5 py-2 rounded-full text-sm hover:bg-brand-600 transition-all shadow-[0_4px_14px_rgba(252,207,0,0.35)] active:scale-[0.98]"
@@ -111,9 +105,14 @@ export function Navbar({ initialSettings }: NavbarProps) {
           </div>
         </nav>
 
-        {/* Mobile Dropdown Menu */}
-        {mobileMenuOpen && (
-          <div className="md:hidden mt-2 bg-white/95 backdrop-blur-md border border-neutral-200 shadow-xl rounded-3xl p-5 space-y-4 animate-in fade-in slide-in-from-top-2 duration-150">
+        {/* Mobile Dropdown Menu with smooth height & opacity transition */}
+        <div
+          className={cn(
+            "md:hidden overflow-hidden transition-all duration-300 ease-in-out",
+            mobileMenuOpen ? "max-h-[500px] opacity-100 mt-2" : "max-h-0 opacity-0 mt-0 pointer-events-none"
+          )}
+        >
+          <div className="bg-white/95 backdrop-blur-md border border-neutral-200 shadow-xl rounded-3xl p-5 space-y-4">
             <div className="flex flex-col space-y-1">
               {NAV_ITEMS.map((item) => (
                 <Link
@@ -132,14 +131,7 @@ export function Navbar({ initialSettings }: NavbarProps) {
               ))}
             </div>
 
-            <div className="pt-3 border-t border-neutral-100 flex flex-col gap-2.5">
-              <Link
-                href="/login"
-                onClick={() => setMobileMenuOpen(false)}
-                className="w-full text-center py-2.5 rounded-full border border-ink-300 text-sm font-semibold text-ink-900 hover:bg-ink-100 transition-colors"
-              >
-                Sign In to Portal
-              </Link>
+            <div className="pt-3 border-t border-neutral-100">
               <Link
                 href="/contact"
                 onClick={() => setMobileMenuOpen(false)}
@@ -150,7 +142,7 @@ export function Navbar({ initialSettings }: NavbarProps) {
               </Link>
             </div>
           </div>
-        )}
+        </div>
       </div>
     </header>
   );

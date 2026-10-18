@@ -533,28 +533,45 @@ export function DashboardLayout({ children, role = "admin", title = "PayTrizz" }
           </div>
         </header>
 
-        {/* Mobile drawer */}
-        {mobileMenuOpen && (
-          <div className="fixed inset-0 z-50 lg:hidden flex">
-            <div className="fixed inset-0 bg-ink-900/50" onClick={() => setMobileMenuOpen(false)} />
-            <div className="relative w-72 bg-white flex flex-col z-10 shadow-xl">
-              <div className="p-4 border-b border-ink-100 flex items-center justify-between">
-                <BrandLogo
-                  href="/"
-                  logoUrl={siteSettings?.logo_url || siteSettings?.site_logo_light}
-                  siteName={siteSettings?.site_name}
-                />
-                <button
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="p-2 text-ink-500 hover:text-ink-900 cursor-pointer"
-                >
-                  <X className="w-5 h-5" />
-                </button>
-              </div>
-              <nav className="p-3 flex-1 overflow-y-auto">{renderNavGroup(true)}</nav>
+        {/* Mobile drawer with smooth backdrop and slide-over transition */}
+        <div
+          className={cn(
+            "fixed inset-0 z-50 lg:hidden flex transition-all duration-300",
+            mobileMenuOpen ? "pointer-events-auto visible" : "pointer-events-none invisible"
+          )}
+        >
+          {/* Backdrop fade */}
+          <div
+            className={cn(
+              "fixed inset-0 bg-ink-900/50 transition-opacity duration-300 ease-in-out",
+              mobileMenuOpen ? "opacity-100" : "opacity-0"
+            )}
+            onClick={() => setMobileMenuOpen(false)}
+          />
+          {/* Drawer slide-in */}
+          <div
+            className={cn(
+              "relative w-72 bg-white flex flex-col z-10 shadow-2xl transition-transform duration-300 ease-in-out",
+              mobileMenuOpen ? "translate-x-0" : "-translate-x-full"
+            )}
+          >
+            <div className="p-4 border-b border-ink-100 flex items-center justify-between">
+              <BrandLogo
+                href="/"
+                logoUrl={siteSettings?.logo_url || siteSettings?.site_logo_light}
+                siteName={siteSettings?.site_name}
+              />
+              <button
+                onClick={() => setMobileMenuOpen(false)}
+                className="p-2 text-ink-500 hover:text-ink-900 cursor-pointer rounded-lg hover:bg-neutral-100 transition-colors"
+                aria-label="Close navigation"
+              >
+                <X className="w-5 h-5" />
+              </button>
             </div>
+            <nav className="p-3 flex-1 overflow-y-auto">{renderNavGroup(true)}</nav>
           </div>
-        )}
+        </div>
 
         <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 w-full">
           <div className="max-w-7xl mx-auto">{children}</div>

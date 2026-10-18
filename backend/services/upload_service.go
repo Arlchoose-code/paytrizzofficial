@@ -32,9 +32,14 @@ var validModules = map[models.MediaModule]bool{
 	models.MediaModuleSite:        true,
 	models.MediaModulePage:        true,
 	models.MediaModuleTalent:      true,
+	"avatar":                      true,
+	"cv":                          true,
 	models.MediaModuleService:     true,
 	models.MediaModuleProject:     true,
+	"projects":                    true,
 	models.MediaModuleBlog:        true,
+	"posts":                       true,
+	"post":                        true,
 	models.MediaModuleBadge:       true,
 	models.MediaModuleApplication: true,
 }
@@ -50,6 +55,14 @@ func (s *UploadService) GenerateRandomFilename() (string, error) {
 
 // SaveUploadedFile processes an uploaded multipart file
 func (s *UploadService) SaveUploadedFile(fileHeader *multipart.FileHeader, module models.MediaModule, altText *string, uploaderID *uint64) (*models.Media, error) {
+	if module == "posts" || module == "post" {
+		module = models.MediaModuleBlog
+	} else if module == "projects" {
+		module = models.MediaModuleProject
+	} else if module == "avatar" || module == "cv" {
+		module = models.MediaModuleTalent
+	}
+
 	if !validModules[module] {
 		return nil, errors.New("invalid media module")
 	}

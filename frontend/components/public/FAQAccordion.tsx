@@ -52,11 +52,18 @@ export function FAQAccordion({ items }: FAQAccordionProps) {
               </div>
             </button>
 
-            {isOpen && (
-              <div className="px-6 pb-6 pt-1 text-sm sm:text-base text-ink-700 leading-relaxed border-t border-neutral-100 animate-in fade-in duration-150">
-                {item.answer}
+            <div
+              className={cn(
+                "grid transition-all duration-300 ease-in-out",
+                isOpen ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"
+              )}
+            >
+              <div className="overflow-hidden">
+                <div className="px-6 pb-6 pt-1 text-sm sm:text-base text-ink-700 leading-relaxed border-t border-neutral-100">
+                  {item.answer}
+                </div>
               </div>
-            )}
+            </div>
           </div>
         );
       })}
