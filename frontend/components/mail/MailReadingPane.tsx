@@ -3,9 +3,11 @@
 import { useState, useEffect, useMemo } from "react";
 import { Mail, AlertTriangle } from "lucide-react";
 import type { MessageItem, MailLabelItem } from "@/types/mail";
+import type { MailboxItem } from "./MailSidebar";
 import { MailReadingPaneHeader } from "./MailReadingPaneHeader";
 import { MailThreadItem } from "./MailThreadItem";
 import { MailReplyBox } from "./MailReplyBox";
+import { buildReplyQuote, buildForwardQuote } from "./mailQuoteHelpers";
 
 export type { MessageItem } from "@/types/mail";
 
@@ -13,8 +15,24 @@ interface MailReadingPaneProps {
   selectedMessage: MessageItem | null;
   readOnly: boolean;
   allLabels?: MailLabelItem[];
-  onReply: (to: string, subject: string, quotedHtml?: string, originalAtts?: any[], initialCc?: string, inReplyTo?: string) => void;
-  onForward?: (subject: string, quotedHtml: string, originalAtts?: any[]) => void;
+  mailboxes?: MailboxItem[];
+  selectedMailboxId?: number | null;
+  onSelectMailbox?: (id: number) => void;
+  onReply: (
+    to: string,
+    subject: string,
+    quotedHtml?: string,
+    originalAtts?: any[],
+    initialCc?: string,
+    inReplyTo?: string,
+    mailboxId?: number
+  ) => void;
+  onForward?: (
+    subject: string,
+    quotedHtml: string,
+    originalAtts?: any[],
+    mailboxId?: number
+  ) => void;
   onEditDraft?: (msg: MessageItem) => void;
   onSnooze: (id: number) => void;
   onToggleStar: (id: number, currentStarred: boolean) => void;
@@ -31,6 +49,9 @@ export function MailReadingPane({
   selectedMessage,
   readOnly,
   allLabels = [],
+  mailboxes,
+  selectedMailboxId,
+  onSelectMailbox,
   onReply,
   onForward,
   onEditDraft,
@@ -103,20 +124,11 @@ export function MailReadingPane({
     });
   };
 
-  const buildReplyQuote = (msg: MessageItem) => {
-    const dateStr = new Date(msg.sort_at).toLocaleString("id-ID", {
-      dateStyle: "medium",
-      timeStyle: "short",
-    });
-    const sender = msg.from_name || msg.from_address;
-    return `<p></p><br/><div class="gmail_quote" style="border-left: 2px solid #ccc; padding-left: 12px; margin-top: 16px; color: #555;">On ${dateStr}, ${sender} &lt;${msg.from_address}&gt; wrote:<br/>${msg.body_html || msg.body_text}</div>`;
-  };
-
   const handleReplyMessage = (msg: MessageItem) => {
     const subjectPrefix = msg.subject.startsWith("Re:") ? msg.subject : `Re: ${msg.subject}`;
     const quoted = buildReplyQuote(msg);
     const inReplyTo = msg.rfc_message_id || String(msg.id);
-    onReply(msg.from_address, subjectPrefix, quoted, msg.attachments || [], undefined, inReplyTo);
+    onReply(msg.from_address, subjectPrefix, quoted, msg.attachments || [], undefined, inReplyTo, msg.mailbox_id);
   };
 
   const handleReplyAllMessage = (msg: MessageItem) => {
@@ -134,20 +146,14 @@ export function MailReadingPane({
       }
     });
     const inReplyTo = msg.rfc_message_id || String(msg.id);
-    onReply(msg.from_address, subjectPrefix, quoted, msg.attachments || [], allCc.join(", "), inReplyTo);
+    onReply(msg.from_address, subjectPrefix, quoted, msg.attachments || [], allCc.join(", "), inReplyTo, msg.mailbox_id);
   };
 
   const handleForwardMessage = (msg: MessageItem) => {
     if (!onForward) return;
     const subjectPrefix = msg.subject.startsWith("Fwd:") ? msg.subject : `Fwd: ${msg.subject}`;
-    const dateStr = new Date(msg.sort_at).toLocaleString("en-US", {
-      dateStyle: "medium",
-      timeStyle: "short",
-    });
-    const sender = msg.from_name || msg.from_address;
-    const recipients = (msg.to_json || []).map((t) => t.address).join(", ");
-    const quoted = `<p></p><br/><div class="gmail_quote" style="border-left: 2px solid #ccc; padding-left: 12px; margin-top: 16px; color: #555;">---------- Forwarded message ---------<br/>From: <b>${sender}</b> &lt;${msg.from_address}&gt;<br/>Date: ${dateStr}<br/>Subject: ${msg.subject}<br/>To: ${recipients}<br/><br/>${msg.body_html || msg.body_text}</div>`;
-    onForward(subjectPrefix, quoted, msg.attachments || []);
+    const quoted = buildForwardQuote(msg);
+    onForward(subjectPrefix, quoted, msg.attachments || [], msg.mailbox_id);
   };
 
   if (!selectedMessage || !latestMessage) {
@@ -259,6 +265,9 @@ export function MailReadingPane({
       <MailReplyBox
         message={latestMessage}
         readOnly={readOnly}
+        mailboxes={mailboxes}
+        selectedMailboxId={selectedMailboxId}
+        onSelectMailbox={onSelectMailbox}
         onReply={() => handleReplyMessage(latestMessage)}
         onReplyAll={() => handleReplyAllMessage(latestMessage)}
         onForward={() => handleForwardMessage(latestMessage)}

@@ -68,12 +68,14 @@ export function MailApp({
   const [composeInitialSubject, setComposeInitialSubject] = useState("");
   const [composeInitialBodyHtml, setComposeInitialBodyHtml] = useState("");
   const [composeInitialInReplyTo, setComposeInitialInReplyTo] = useState("");
+  const [composeInitialMailboxId, setComposeInitialMailboxId] = useState<number | undefined>(undefined);
   const [composeInitialAttachments, setComposeInitialAttachments] = useState<any[]>([]);
   const [inlineReplyText, setInlineReplyText] = useState("");
   const [replySending, setReplySending] = useState(false);
 
   const handleOpenNewCompose = () => {
     setEditingDraft(null);
+    setComposeInitialMailboxId(selectedMailboxId || undefined);
     setComposeInitialTo("");
     setComposeInitialCc("");
     setComposeInitialBcc("");
@@ -86,6 +88,7 @@ export function MailApp({
 
   const handleEditDraft = (msg: MessageItem) => {
     setEditingDraft(msg);
+    setComposeInitialMailboxId(msg.mailbox_id);
     setComposeInitialTo((msg.to_json || []).map((t) => t.address).join(", "));
     setComposeInitialCc((msg.cc_json || []).map((c) => c.address).join(", "));
     setComposeInitialBcc("");
@@ -341,7 +344,7 @@ export function MailApp({
       const inReplyTo = selectedMessage.rfc_message_id || String(selectedMessage.id);
 
       const payload = {
-        mailbox_id: selectedMessage.mailbox_id,
+        mailbox_id: selectedMailboxId || selectedMessage.mailbox_id,
         to: [{ name: recipientName, address: recipientAddr }],
         subject: selectedMessage.subject.startsWith("Re:") ? selectedMessage.subject : `Re: ${selectedMessage.subject}`,
         body_text: inlineReplyText,
@@ -559,7 +562,7 @@ export function MailApp({
               fetchMessages();
               fetchCounts();
             }}
-            onOpenMobileFolders={() => setMobileFoldersOpen(true)}
+            onOpenMobileFolders={standalone ? undefined : () => setMobileFoldersOpen(true)}
           />
         </div>
 
@@ -574,10 +577,14 @@ export function MailApp({
             selectedMessage={selectedMessage}
             readOnly={readOnly}
             allLabels={labels}
+            mailboxes={mailboxes}
+            selectedMailboxId={selectedMailboxId}
+            onSelectMailbox={(id) => setSelectedMailboxId(id)}
             onAssignLabels={handleAssignLabels}
             onBack={() => setSelectedMessage(null)}
-            onReply={(to, subj, quotedHtml, originalAtts, initialCc, inReplyTo) => {
+            onReply={(to, subj, quotedHtml, originalAtts, initialCc, inReplyTo, mailboxId) => {
               setEditingDraft(null);
+              setComposeInitialMailboxId(mailboxId || selectedMailboxId || undefined);
               setComposeInitialTo(to);
               setComposeInitialCc(initialCc || "");
               setComposeInitialBcc("");
@@ -595,8 +602,9 @@ export function MailApp({
               );
               setShowCompose(true);
             }}
-            onForward={(subj, quotedHtml, originalAtts) => {
+            onForward={(subj, quotedHtml, originalAtts, mailboxId) => {
               setEditingDraft(null);
+              setComposeInitialMailboxId(mailboxId || selectedMailboxId || undefined);
               setComposeInitialTo("");
               setComposeInitialCc("");
               setComposeInitialBcc("");
@@ -649,6 +657,8 @@ export function MailApp({
         setComposeInitialBodyHtml={setComposeInitialBodyHtml}
         composeInitialInReplyTo={composeInitialInReplyTo}
         setComposeInitialInReplyTo={setComposeInitialInReplyTo}
+        composeInitialMailboxId={composeInitialMailboxId}
+        setComposeInitialMailboxId={setComposeInitialMailboxId}
         composeInitialAttachments={composeInitialAttachments}
         setComposeInitialAttachments={setComposeInitialAttachments}
         showAddMailbox={showAddMailbox}

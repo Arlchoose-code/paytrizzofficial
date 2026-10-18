@@ -9,10 +9,14 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import type { MessageItem } from "@/types/mail";
+import type { MailboxItem } from "./MailSidebar";
 
 interface MailReplyBoxProps {
   message: MessageItem;
   readOnly: boolean;
+  mailboxes?: MailboxItem[];
+  selectedMailboxId?: number | null;
+  onSelectMailbox?: (id: number) => void;
   onReply: () => void;
   onReplyAll: () => void;
   onForward: () => void;
@@ -25,6 +29,9 @@ interface MailReplyBoxProps {
 export function MailReplyBox({
   message,
   readOnly,
+  mailboxes,
+  selectedMailboxId,
+  onSelectMailbox,
   onReply,
   onReplyAll,
   onForward,
@@ -131,12 +138,36 @@ export function MailReplyBox({
       </div>
 
       {/* Quick Reply Form */}
-      <div className="pt-2 border-t border-neutral-200/60">
-        <div className="flex items-center justify-between text-xs font-semibold text-ink-600 mb-1.5">
-          <span className="flex items-center gap-1.5">
-            <CornerUpLeft className="w-3 h-3" />
-            Quick Reply to {senderName}
-          </span>
+      <div className="pt-2 border-t border-neutral-200/60 space-y-2">
+        <div className="flex items-center justify-between text-xs font-semibold text-ink-600 flex-wrap gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="flex items-center gap-1.5 text-ink-700">
+              <CornerUpLeft className="w-3.5 h-3.5 text-ink-500" />
+              Reply to <span className="font-bold text-ink-900">{senderName}</span>
+            </span>
+            {mailboxes && mailboxes.length > 0 && (
+              <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-neutral-100 border border-neutral-200 text-[11px] text-neutral-600">
+                <span className="text-neutral-400 font-medium">from:</span>
+                {mailboxes.length > 1 && onSelectMailbox ? (
+                  <select
+                    value={selectedMailboxId || message.mailbox_id || mailboxes[0].id}
+                    onChange={(e) => onSelectMailbox(Number(e.target.value))}
+                    className="bg-transparent font-bold text-ink-900 outline-none cursor-pointer max-w-[170px] truncate"
+                  >
+                    {mailboxes.map((b) => (
+                      <option key={b.id} value={b.id}>
+                        {b.address}
+                      </option>
+                    ))}
+                  </select>
+                ) : (
+                  <span className="font-bold text-ink-900">
+                    {mailboxes.find((b) => b.id === (selectedMailboxId || message.mailbox_id))?.address || mailboxes[0].address}
+                  </span>
+                )}
+              </div>
+            )}
+          </div>
           <span className="text-[11px] text-ink-400 font-normal">
             Direct send (with 8s undo window)
           </span>

@@ -72,13 +72,13 @@ export function MailRecipientFields({
 }: MailRecipientFieldsProps) {
   return (
     <>
-      {/* To (Kepada) with Cc and Bcc toggle buttons */}
+      {/* To with Cc and Bcc toggle buttons */}
       <div className="flex items-center flex-wrap gap-1.5 px-4 py-2 border-b border-neutral-100 min-h-[42px] text-xs">
         <span
           className="text-neutral-500 w-16 font-medium cursor-pointer select-none"
           onClick={() => toInputRef.current?.focus()}
         >
-          Kepada
+          To
         </span>
         <div className="flex-1 flex items-center flex-wrap gap-1.5 min-w-[140px]">
           {toChips.map((addr) => (
@@ -106,7 +106,7 @@ export function MailRecipientFields({
             }
             onBlur={() => onBlurChip(toInput, setToInput, toChips, setToChips)}
             onPaste={(e) => onPasteChip(e, toChips, setToChips, setToInput)}
-            placeholder={toChips.length === 0 ? "Penerima" : ""}
+            placeholder={toChips.length === 0 ? "Recipients" : ""}
             className="flex-1 min-w-[100px] text-xs text-neutral-900 outline-none bg-transparent py-0.5"
           />
         </div>
@@ -138,7 +138,7 @@ export function MailRecipientFields({
         </div>
       </div>
 
-      {/* Cc Field */}
+      {/* Cc Field with close button */}
       {showCc && (
         <div className="flex items-center flex-wrap gap-1.5 px-4 py-2 border-b border-neutral-100 min-h-[42px] text-xs animate-in fade-in duration-150">
           <span
@@ -173,14 +173,26 @@ export function MailRecipientFields({
               }
               onBlur={() => onBlurChip(ccInput, setCcInput, ccChips, setCcChips)}
               onPaste={(e) => onPasteChip(e, ccChips, setCcChips, setCcInput)}
-              placeholder={ccChips.length === 0 ? "Penerima salinan (Cc)" : ""}
+              placeholder={ccChips.length === 0 ? "Cc recipients" : ""}
               className="flex-1 min-w-[100px] text-xs text-neutral-900 outline-none bg-transparent py-0.5"
             />
           </div>
+          <button
+            type="button"
+            onClick={() => {
+              setShowCc(false);
+              setCcChips([]);
+              setCcInput("");
+            }}
+            className="p-1 text-neutral-400 hover:text-neutral-700 rounded-md hover:bg-neutral-100 transition cursor-pointer ml-auto shrink-0"
+            title="Close Cc"
+          >
+            <X className="w-3.5 h-3.5" />
+          </button>
         </div>
       )}
 
-      {/* Bcc Field */}
+      {/* Bcc Field with close button */}
       {showBcc && (
         <div className="flex items-center flex-wrap gap-1.5 px-4 py-2 border-b border-neutral-100 min-h-[42px] text-xs animate-in fade-in duration-150">
           <span
@@ -215,10 +227,22 @@ export function MailRecipientFields({
               }
               onBlur={() => onBlurChip(bccInput, setBccInput, bccChips, setBccChips)}
               onPaste={(e) => onPasteChip(e, bccChips, setBccChips, setBccInput)}
-              placeholder={bccChips.length === 0 ? "Penerima salinan tersembunyi (Bcc)" : ""}
+              placeholder={bccChips.length === 0 ? "Bcc recipients" : ""}
               className="flex-1 min-w-[100px] text-xs text-neutral-900 outline-none bg-transparent py-0.5"
             />
           </div>
+          <button
+            type="button"
+            onClick={() => {
+              setShowBcc(false);
+              setBccChips([]);
+              setBccInput("");
+            }}
+            className="p-1 text-neutral-400 hover:text-neutral-700 rounded-md hover:bg-neutral-100 transition cursor-pointer ml-auto shrink-0"
+            title="Close Bcc"
+          >
+            <X className="w-3.5 h-3.5" />
+          </button>
         </div>
       )}
     </>

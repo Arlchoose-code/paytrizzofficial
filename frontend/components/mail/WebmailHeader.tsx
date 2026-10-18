@@ -29,43 +29,43 @@ export function WebmailHeader({
   const workspaceHref = getMainAppUrl(scope === "company" ? "/admin" : "/talent");
 
   return (
-    <header className="h-16 px-4 sm:px-6 border-b border-neutral-200 bg-white flex items-center justify-between shrink-0 z-20">
-      <div className="flex items-center gap-2 sm:gap-4">
+    <header className="h-16 px-3 sm:px-6 border-b border-neutral-200 bg-white flex items-center justify-between shrink-0 z-20 gap-2">
+      <div className="flex items-center gap-1.5 sm:gap-4 min-w-0">
         {onOpenMobileFolders && (
           <button
             type="button"
             onClick={onOpenMobileFolders}
-            className="lg:hidden p-1.5 text-ink-700 hover:text-ink-900 rounded-lg hover:bg-neutral-100 transition cursor-pointer"
+            className="lg:hidden p-1.5 text-ink-700 hover:text-ink-900 rounded-lg hover:bg-neutral-100 transition cursor-pointer shrink-0"
             title="Open Mailboxes & Folders"
           >
-            <Menu className="w-4 h-4" />
+            <Menu className="w-5 h-5" />
           </button>
         )}
         <Link
           href={workspaceHref}
-          className="inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-full text-xs font-bold text-ink-600 hover:text-ink-900 hover:bg-neutral-100 transition-colors"
+          className="inline-flex items-center gap-1 px-2 sm:px-3 py-1.5 rounded-full text-xs font-bold text-ink-600 hover:text-ink-900 hover:bg-neutral-100 transition-colors shrink-0"
           title="Back to Workspace"
         >
           <ArrowLeft className="w-3.5 h-3.5" />
-          <span className="hidden sm:inline">Workspace</span>
+          <span className="hidden md:inline">Workspace</span>
         </Link>
-        <div className="h-4 w-px bg-neutral-200" />
-        <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-xl bg-brand-500 text-ink-900 flex items-center justify-center font-black shadow-xs">
-            <Mail className="w-4 h-4" />
+        <div className="h-4 w-px bg-neutral-200 hidden sm:block shrink-0" />
+        <div className="flex items-center gap-2 shrink-0">
+          <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-brand-500 text-ink-900 flex items-center justify-center font-black shadow-xs shrink-0">
+            <Mail className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
           </div>
-          <div className="flex flex-col">
+          <div className="hidden xs:flex flex-col">
             <div className="flex items-center gap-1.5">
-              <span className="font-extrabold text-sm text-ink-900 tracking-tight">PayTrizz</span>
-              <span className="px-1.5 py-0.2 rounded-md bg-brand-100 text-brand-900 text-[10px] font-bold">Webmail</span>
+              <span className="font-extrabold text-xs sm:text-sm text-ink-900 tracking-tight">PayTrizz</span>
+              <span className="px-1.5 py-0.2 rounded-md bg-brand-100 text-brand-900 text-[10px] font-bold">Mail</span>
             </div>
-            <span className="text-[10px] text-neutral-400 font-medium">webmail.paytrizz.com</span>
+            <span className="text-[10px] text-neutral-400 font-medium hidden sm:inline">webmail.paytrizz.com</span>
           </div>
         </div>
       </div>
 
       {/* Center Search Bar */}
-      <div className="flex-1 max-w-2xl hidden md:flex items-center">
+      <div className="flex-1 max-w-2xl hidden md:flex items-center mx-2">
         <div className="relative w-full">
           <Search className="w-4 h-4 text-neutral-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
           <input
@@ -88,14 +88,14 @@ export function WebmailHeader({
       </div>
 
       {/* Right Controls */}
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
         {mailboxes.length > 0 && (
-          <div className="flex items-center gap-2 px-3 py-1.5 bg-neutral-100 rounded-full text-xs font-semibold text-ink-900">
+          <div className="flex items-center gap-1.5 px-2 sm:px-3 py-1.5 bg-neutral-100 rounded-full text-xs font-semibold text-ink-900">
             <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0" />
             <select
               value={selectedMailboxId || ""}
               onChange={(e) => setSelectedMailboxId(Number(e.target.value))}
-              className="bg-transparent outline-none cursor-pointer text-xs font-bold text-ink-900 max-w-[140px] sm:max-w-[200px] truncate"
+              className="bg-transparent outline-none cursor-pointer text-xs font-bold text-ink-900 max-w-[100px] xs:max-w-[140px] sm:max-w-[200px] truncate"
             >
               {mailboxes.map((b) => (
                 <option key={b.id} value={b.id}>
@@ -109,7 +109,7 @@ export function WebmailHeader({
         <button
           type="button"
           onClick={onOpenCompose}
-          className="inline-flex items-center gap-1.5 px-4 py-2 bg-brand-500 hover:bg-brand-400 text-ink-900 font-bold rounded-full text-xs shadow-xs transition-all cursor-pointer"
+          className="inline-flex items-center gap-1.5 px-3 sm:px-4 py-1.5 sm:py-2 bg-brand-500 hover:bg-brand-400 text-ink-900 font-bold rounded-full text-xs shadow-xs transition-all cursor-pointer shrink-0"
         >
           <PenSquare className="w-3.5 h-3.5" />
           <span className="hidden sm:inline">Compose</span>

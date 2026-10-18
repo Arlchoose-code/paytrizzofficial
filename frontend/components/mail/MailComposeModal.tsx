@@ -128,6 +128,12 @@ export function MailComposeModal({
       StarterKit.configure({
         bulletList: { keepMarks: true, keepAttributes: false },
         orderedList: { keepMarks: true, keepAttributes: false },
+        blockquote: {
+          HTMLAttributes: {
+            class: "gmail_quote",
+            style: "border-left: 2px solid #ccc; padding-left: 12px; margin-left: 0; color: #555;",
+          },
+        },
       }),
       Underline,
       Link.configure({
@@ -389,20 +395,30 @@ export function MailComposeModal({
 
       {/* 2. Sender Selector & Recipient Fields */}
       <div className="flex-1 flex flex-col overflow-y-auto">
-        {mailboxes.length > 1 && (
-          <div className="flex items-center px-4 py-1.5 border-b border-neutral-100 text-xs">
-            <span className="text-neutral-500 w-16 font-medium">From</span>
-            <select
-              value={selectedMailboxId}
-              onChange={(e) => setSelectedMailboxId(Number(e.target.value))}
-              className="flex-1 font-medium text-neutral-900 bg-transparent outline-none cursor-pointer py-1"
-            >
-              {mailboxes.map((b) => (
-                <option key={b.id} value={b.id}>
-                  {b.display_name} &lt;{b.address}&gt;
-                </option>
-              ))}
-            </select>
+        {mailboxes.length > 0 && (
+          <div className="flex items-center px-4 py-2 border-b border-neutral-100 text-xs bg-neutral-50/60">
+            <span className="text-neutral-500 w-16 font-medium select-none">From</span>
+            {mailboxes.length > 1 ? (
+              <div className="flex-1 flex items-center">
+                <select
+                  value={selectedMailboxId}
+                  onChange={(e) => setSelectedMailboxId(Number(e.target.value))}
+                  className="font-semibold text-neutral-900 bg-transparent outline-none cursor-pointer py-0.5 max-w-full text-xs"
+                >
+                  {mailboxes.map((b) => (
+                    <option key={b.id} value={b.id}>
+                      {b.display_name ? `${b.display_name} <${b.address}>` : b.address}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            ) : (
+              <span className="font-semibold text-neutral-800 py-0.5">
+                {mailboxes[0].display_name
+                  ? `${mailboxes[0].display_name} <${mailboxes[0].address}>`
+                  : mailboxes[0].address}
+              </span>
+            )}
           </div>
         )}
 

@@ -191,7 +191,15 @@ export function MailMessageList({
             return (
               <div
                 key={msg.id}
+                role="button"
+                tabIndex={0}
                 onClick={() => onSelectMessage(msg)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    onSelectMessage(msg);
+                  }
+                }}
                 className={cn(
                   "p-3.5 cursor-pointer transition-colors relative flex items-start gap-2.5",
                   isSelected

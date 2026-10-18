@@ -32,6 +32,8 @@ interface MailModalsProps {
   setComposeInitialBodyHtml: (html: string) => void;
   composeInitialInReplyTo?: string;
   setComposeInitialInReplyTo?: (ref: string) => void;
+  composeInitialMailboxId?: number;
+  setComposeInitialMailboxId?: (id: number | undefined) => void;
   composeInitialAttachments: any[];
   setComposeInitialAttachments: (atts: any[]) => void;
   showAddMailbox: boolean;
@@ -73,6 +75,8 @@ export function MailModals({
   setComposeInitialBodyHtml,
   composeInitialInReplyTo = "",
   setComposeInitialInReplyTo,
+  composeInitialMailboxId,
+  setComposeInitialMailboxId,
   composeInitialAttachments,
   setComposeInitialAttachments,
   showAddMailbox,
@@ -95,7 +99,7 @@ export function MailModals({
       {showCompose && (
         <MailComposeModal
           mailboxes={mailboxes}
-          defaultMailboxId={editingDraft?.mailbox_id || selectedMailboxId || undefined}
+          defaultMailboxId={composeInitialMailboxId || editingDraft?.mailbox_id || selectedMailboxId || undefined}
           initialDraftId={editingDraft?.id}
           initialTo={composeInitialTo}
           initialCc={composeInitialCc}
@@ -113,6 +117,7 @@ export function MailModals({
             setComposeInitialSubject("");
             setComposeInitialBodyHtml("");
             setComposeInitialInReplyTo?.("");
+            setComposeInitialMailboxId?.(undefined);
             setComposeInitialAttachments([]);
           }}
           onSent={() => {

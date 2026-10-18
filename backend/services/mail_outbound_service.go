@@ -39,6 +39,9 @@ func (s *MailOutboundService) SendOrQueue(
 	req structs.MailComposeRequest,
 ) (*models.MailMessage, error) {
 	// 1. Verify From mailbox authorization
+	if req.MailboxID == 0 && len(accessibleBoxIDs) > 0 {
+		req.MailboxID = accessibleBoxIDs[0]
+	}
 	var fromBox models.Mailbox
 	if err := s.db.Where("id = ? AND id IN ?", req.MailboxID, accessibleBoxIDs).First(&fromBox).Error; err != nil {
 		return nil, errors.New("unauthorized sender mailbox")
