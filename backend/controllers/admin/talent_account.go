@@ -115,17 +115,23 @@ func (ctrl *TalentController) ResetPassword(c *gin.Context) {
 		sendEmail = *req.SendEmail
 	}
 	if sendEmail {
-		loginURL := "http://localhost:3000/login"
-		changeURL := "http://localhost:3000/change-password"
+		frontendURL := config.AppConfig.FrontendURL
+		if frontendURL == "" {
+			frontendURL = "https://paytrizz.com"
+		}
+		loginURL := frontendURL + "/login"
+		changeURL := frontendURL + "/change-password"
 		_, _ = ctrl.outboxService.SendTemplated(
-			"password_reset",
+			"talent_account_created",
 			talent.User.Email,
 			&talent.User.Name,
 			map[string]string{
 				"name":                talent.User.Name,
-				"login_url":           loginURL,
+				"email":               talent.User.Email,
 				"login_email":         talent.User.Email,
+				"initial_password":    newPassword,
 				"password":            newPassword,
+				"login_url":           loginURL,
 				"change_password_url": changeURL,
 			},
 			nil,

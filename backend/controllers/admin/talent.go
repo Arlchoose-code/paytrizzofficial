@@ -253,17 +253,23 @@ func (ctrl *TalentController) Store(c *gin.Context) {
 
 	// Welcome email with initial credentials (PRD 4.1) — password only lives in this email
 	if sendWelcome {
-		loginURL := "http://localhost:3000/login"
-		changeURL := "http://localhost:3000/change-password"
+		frontendURL := config.AppConfig.FrontendURL
+		if frontendURL == "" {
+			frontendURL = "https://paytrizz.com"
+		}
+		loginURL := frontendURL + "/login"
+		changeURL := frontendURL + "/change-password"
 		_, _ = ctrl.outboxService.SendTemplated(
 			"talent_account_created",
 			user.Email,
 			&user.Name,
 			map[string]string{
 				"name":                user.Name,
-				"login_url":           loginURL,
+				"email":               user.Email,
 				"login_email":         user.Email,
+				"initial_password":    tempPassword,
 				"password":            tempPassword,
+				"login_url":           loginURL,
 				"change_password_url": changeURL,
 			},
 			nil,
