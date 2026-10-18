@@ -3,6 +3,8 @@
 !/backend/
 !/frontend/
 !/.gitignore
+!/ecosystem.config.js
+!/nginx.conf
 
 # Ignore all markdown documentation files
 *.md
