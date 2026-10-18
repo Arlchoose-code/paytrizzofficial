@@ -3,23 +3,25 @@ import { NextRequest, NextResponse } from "next/server";
 const BACKEND_URL = process.env.API_URL || "http://localhost:8080/api";
 
 function patchCookieDomain(cookieStr: string, req: NextRequest): string {
-  if (/domain=/i.test(cookieStr)) return cookieStr;
-
   const hostHeader = req.headers.get("host") || "";
   const host = hostHeader.split(":")[0].toLowerCase();
 
+  // Strip any existing backend Domain and SameSite attributes
+  const clean = cookieStr.replace(/;\s*Domain=[^;]+/gi, "").replace(/;\s*SameSite=[^;]+/gi, "");
+
   if (host === "localhost" || host.endsWith(".localhost") || host === "127.0.0.1") {
-    return `${cookieStr}; Domain=.localhost; SameSite=Lax`;
+    return `${clean}; Domain=.localhost; SameSite=Lax`;
   }
 
   const parts = host.split(".");
   if (parts.length >= 2) {
     const rootDomain = parts.slice(-2).join(".");
-    return `${cookieStr}; Domain=.${rootDomain}; SameSite=Lax`;
+    return `${clean}; Domain=.${rootDomain}; SameSite=Lax`;
   }
 
-  return cookieStr;
+  return `${clean}; SameSite=Lax`;
 }
+
 
 export async function POST(
   req: NextRequest,

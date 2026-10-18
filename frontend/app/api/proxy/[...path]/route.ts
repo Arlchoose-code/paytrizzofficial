@@ -28,20 +28,21 @@ function mergeCookies(oldCookieHeader: string, setCookieHeaders: string[]): stri
 
 function patchProxyCookie(cookieStr: string, req: NextRequest): string {
   const host = (req.headers.get("host") || "").split(":")[0].toLowerCase();
-  // On localhost/subdomains in development, omit Domain attribute so browser saves as host-only cookie for the current host (webmail.localhost or localhost)
+  // Strip any existing backend Domain and SameSite attributes
+  const clean = cookieStr.replace(/;\s*Domain=[^;]+/gi, "").replace(/;\s*SameSite=[^;]+/gi, "");
+
   if (host.includes("localhost") || host.includes("127.0.0.1")) {
-    return cookieStr.replace(/;\s*Domain=[^;]+/gi, "");
+    return clean;
   }
   // On production, scope to root domain
   const parts = host.split(".");
   if (parts.length >= 2) {
     const rootDomain = parts.slice(-2).join(".");
-    if (!/domain=/i.test(cookieStr)) {
-      return `${cookieStr}; Domain=.${rootDomain}`;
-    }
+    return `${clean}; Domain=.${rootDomain}; SameSite=Lax`;
   }
-  return cookieStr;
+  return clean;
 }
+
 
 async function forwardRequest(req: NextRequest, pathParts: string[]) {
   const endpoint = pathParts.join("/");
