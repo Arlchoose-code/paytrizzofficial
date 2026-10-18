@@ -20,13 +20,20 @@ type AuthController struct {
 	authService      *services.AuthService
 	tokenService     *services.TokenService
 	turnstileService *services.TurnstileService
+	outboxService    *services.EmailOutboxService
 }
 
-func NewAuthController(authService *services.AuthService, tokenService *services.TokenService, turnstileService *services.TurnstileService) *AuthController {
+func NewAuthController(
+	authService *services.AuthService,
+	tokenService *services.TokenService,
+	turnstileService *services.TurnstileService,
+	outboxService *services.EmailOutboxService,
+) *AuthController {
 	return &AuthController{
 		authService:      authService,
 		tokenService:     tokenService,
 		turnstileService: turnstileService,
+		outboxService:    outboxService,
 	}
 }
 
@@ -201,6 +208,25 @@ func (ctrl *AuthController) ChangePassword(c *gin.Context) {
 		return
 	}
 
+	if ctrl.outboxService != nil {
+		var user models.User
+		if err := config.DB.First(&user, userID).Error; err == nil {
+			_, _ = ctrl.outboxService.SendTemplated(
+				"password_changed",
+				user.Email,
+				&user.Name,
+				map[string]string{
+					"name":      user.Name,
+					"timestamp": time.Now().Format("2006-01-02 15:04:05 MST"),
+					"ip":        c.ClientIP(),
+				},
+				nil,
+				func(s string) *string { return &s }("user"),
+				&user.ID,
+			)
+		}
+	}
+
 	helpers.RespondSuccess(c, http.StatusOK, "Password changed successfully. Please sign in again with your new password", nil)
 }
 
@@ -212,11 +238,25 @@ func (ctrl *AuthController) ForgotPassword(c *gin.Context) {
 		return
 	}
 
-	_, _, err := ctrl.authService.CreatePasswordResetToken(req.Email, c.ClientIP())
-	if err != nil {
-		// Avoid user enumeration
-		helpers.RespondSuccess(c, http.StatusOK, "If your email is registered, instructions to reset your password have been sent", nil)
-		return
+	rawToken, user, err := ctrl.authService.CreatePasswordResetToken(req.Email, c.ClientIP())
+	if err == nil && user != nil && ctrl.outboxService != nil {
+		frontendURL := config.AppConfig.FrontendURL
+		if frontendURL == "" {
+			frontendURL = config.AppConfig.AppURL
+		}
+		resetURL := strings.TrimRight(frontendURL, "/") + "/reset-password?token=" + rawToken
+		_, _ = ctrl.outboxService.SendTemplated(
+			"password_reset",
+			user.Email,
+			&user.Name,
+			map[string]string{
+				"name":      user.Name,
+				"reset_url": resetURL,
+			},
+			nil,
+			func(s string) *string { return &s }("user"),
+			&user.ID,
+		)
 	}
 
 	helpers.RespondSuccess(c, http.StatusOK, "If your email is registered, instructions to reset your password have been sent", nil)
@@ -230,10 +270,26 @@ func (ctrl *AuthController) ResetPassword(c *gin.Context) {
 		return
 	}
 
-	_, err := ctrl.authService.ResetPassword(req.Token, req.NewPassword)
+	user, err := ctrl.authService.ResetPassword(req.Token, req.NewPassword)
 	if err != nil {
 		helpers.RespondError(c, http.StatusBadRequest, err.Error())
 		return
+	}
+
+	if ctrl.outboxService != nil && user != nil {
+		_, _ = ctrl.outboxService.SendTemplated(
+			"password_changed",
+			user.Email,
+			&user.Name,
+			map[string]string{
+				"name":      user.Name,
+				"timestamp": time.Now().Format("2006-01-02 15:04:05 MST"),
+				"ip":        c.ClientIP(),
+			},
+			nil,
+			func(s string) *string { return &s }("user"),
+			&user.ID,
+		)
 	}
 
 	helpers.RespondSuccess(c, http.StatusOK, "Password reset successful. You may now sign in with your new password", nil)

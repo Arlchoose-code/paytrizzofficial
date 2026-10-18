@@ -255,7 +255,7 @@ func (ctrl *TalentController) Store(c *gin.Context) {
 	if sendWelcome {
 		frontendURL := config.AppConfig.FrontendURL
 		if frontendURL == "" {
-			frontendURL = "https://paytrizz.com"
+			frontendURL = config.AppConfig.AppURL
 		}
 		loginURL := frontendURL + "/login"
 		changeURL := frontendURL + "/change-password"

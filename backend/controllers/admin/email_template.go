@@ -3,6 +3,7 @@ package admin
 import (
 	"fmt"
 	"net/http"
+	"paytrizz-backend/config"
 	"paytrizz-backend/helpers"
 	"paytrizz-backend/models"
 	"paytrizz-backend/services"
@@ -116,32 +117,37 @@ func (ctrl *EmailTemplateController) TestSend(c *gin.Context) {
 		return
 	}
 
+	frontendURL := config.AppConfig.FrontendURL
+	if frontendURL == "" {
+		frontendURL = config.AppConfig.AppURL
+	}
+
 	mockVars := map[string]string{
 		"name":                 "Test User",
 		"full_name":            "Test User",
 		"email":                req.ToEmail,
 		"initial_password":     "DemoPass2026!",
-		"login_url":            "http://localhost:3000/login",
-		"reset_url":            "http://localhost:3000/reset-password?token=mock123",
+		"login_url":            frontendURL + "/login",
+		"reset_url":            frontendURL + "/reset-password?token=mock123",
 		"ticket_code":          "PTZ-2026-TEST01",
 		"subject":              "Test Inquiry Subject",
 		"message":              "This is a sample test message rendered from the admin template editor.",
 		"reply_eta":            "Our team responds within 24 to 48 hours.",
 		"phone":                "+1 555-0192",
-		"admin_url":            "http://localhost:3000/admin",
+		"admin_url":            frontendURL + "/admin",
 		"talent_name":          "Syahrul",
 		"visitor_name":         "Client Test",
 		"visitor_email":        "client@example.com",
-		"talent_dashboard_url": "http://localhost:3000/talent",
+		"talent_dashboard_url": frontendURL + "/talent",
 		"application_type":     "Freelance Specialist",
 		"new_status":           "shortlisted",
 		"notes":                "Sample admin reviewer test note.",
 		"entity_type":          "Project",
 		"title":                "Sample Showcase Case Study",
-		"approvals_url":        "http://localhost:3000/admin/approvals",
-		"public_url":           "http://localhost:3000/projects/sample",
+		"approvals_url":        frontendURL + "/admin/approvals",
+		"public_url":           frontendURL + "/projects/sample",
 		"review_note":          "Please clarify section 3 results.",
-		"edit_url":             "http://localhost:3000/talent/projects/1/edit",
+		"edit_url":             frontendURL + "/talent/projects/1/edit",
 	}
 
 	for k, v := range req.Data {

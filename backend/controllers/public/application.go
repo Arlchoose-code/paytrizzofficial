@@ -3,6 +3,7 @@ package public
 import (
 	"fmt"
 	"net/http"
+	"paytrizz-backend/config"
 	"paytrizz-backend/helpers"
 	"paytrizz-backend/models"
 	"paytrizz-backend/services"
@@ -106,7 +107,16 @@ func (ctrl *ApplicationController) Store(c *gin.Context) {
 	)
 
 	// 2. Admin notification email
-	adminEmail := "admin@paytrizz.com"
+	adminEmail := config.AppConfig.SeedAdminEmail
+	if adminEmail == "" {
+		adminEmail = config.AppConfig.SystemReplyTo
+	}
+	frontendURL := config.AppConfig.FrontendURL
+	if frontendURL == "" {
+		frontendURL = config.AppConfig.AppURL
+	}
+	adminURL := fmt.Sprintf("%s/admin/applications", frontendURL)
+
 	_, _ = ctrl.outboxService.SendTemplated(
 		"application_admin_notification",
 		adminEmail,
@@ -117,7 +127,7 @@ func (ctrl *ApplicationController) Store(c *gin.Context) {
 			"full_name":        app.FullName,
 			"email":            app.Email,
 			"message":          app.Message,
-			"admin_url":        fmt.Sprintf("http://localhost:3000/admin/applications"),
+			"admin_url":        adminURL,
 		},
 		nil,
 		func(s string) *string { return &s }("application"),

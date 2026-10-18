@@ -68,7 +68,7 @@ func main() {
 	outboxWorker.Start()
 
 	// 8. Initialize Public Controllers
-	authCtrl := public.NewAuthController(authService, tokenService, turnstileService)
+	authCtrl := public.NewAuthController(authService, tokenService, turnstileService, outboxService)
 	pubPageCtrl := public.NewPageController()
 	pubServiceCtrl := public.NewServiceController()
 	pubFAQCtrl := public.NewFAQController()

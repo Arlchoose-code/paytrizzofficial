@@ -150,16 +150,28 @@ func (ctrl *PostController) Store(c *gin.Context) {
 
 	// Notify admin about the new submission (PRD 4.8)
 	if status == "pending" {
-		adminEmail := "admin@paytrizz.com"
+		adminEmail := config.AppConfig.SeedAdminEmail
+		if adminEmail == "" {
+			adminEmail = config.AppConfig.SystemReplyTo
+		}
+		frontendURL := config.AppConfig.FrontendURL
+		if frontendURL == "" {
+			frontendURL = config.AppConfig.AppURL
+		}
+		approvalsURL := fmt.Sprintf("%s/admin/approvals", frontendURL)
+
 		_, _ = ctrl.outboxService.SendTemplated(
 			"content_submitted_admin_notification",
 			adminEmail,
 			func(s string) *string { return &s }("PayTrizz Operations"),
 			map[string]string{
-				"content_type": "blog post",
-				"title":        post.Title,
-				"author":       t.Name,
-				"review_url":   "http://localhost:3000/admin/approvals",
+				"entity_type":   "blog article",
+				"content_type":  "blog article",
+				"title":         post.Title,
+				"talent_name":   t.Name,
+				"author":        t.Name,
+				"approvals_url": approvalsURL,
+				"review_url":    approvalsURL,
 			},
 			nil,
 			func(s string) *string { return &s }("post"),

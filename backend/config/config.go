@@ -47,11 +47,22 @@ func LoadConfig() *Config {
 		log.Println("Note: .env file not found or already loaded into environment")
 	}
 
+	frontendURL := getEnv("FRONTEND_URL", "")
+	if frontendURL == "" {
+		frontendURL = getEnv("SITE_URL", "")
+	}
+	if frontendURL == "" {
+		frontendURL = getEnv("NEXT_PUBLIC_SITE_URL", "")
+	}
+	if frontendURL == "" {
+		frontendURL = "http://localhost:3000"
+	}
+
 	AppConfig = &Config{
 		AppEnv:                 getEnv("APP_ENV", "development"),
 		AppPort:                getEnv("APP_PORT", "8080"),
 		AppURL:                 getEnv("APP_URL", "http://localhost:8080"),
-		FrontendURL:            getEnv("FRONTEND_URL", "http://localhost:3000"),
+		FrontendURL:            frontendURL,
 		AppName:                getEnv("APP_NAME", "PayTrizz"),
 		DBHost:                 getEnv("DB_HOST", "127.0.0.1"),
 		DBPort:                 getEnv("DB_PORT", "3306"),

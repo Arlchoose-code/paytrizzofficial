@@ -1,9 +1,11 @@
 package public
 
 import (
+	"fmt"
 	"net/http"
 	"strings"
 
+	"paytrizz-backend/config"
 	"paytrizz-backend/helpers"
 	"paytrizz-backend/models"
 	"paytrizz-backend/services"
@@ -99,12 +101,21 @@ func (ctrl *ContactController) Store(c *gin.Context) {
 		}
 	}
 
+	frontendURL := config.AppConfig.FrontendURL
+	if frontendURL == "" {
+		frontendURL = config.AppConfig.AppURL
+	}
+
 	if shouldNotifyAdmin {
-		adminEmail := "admin@paytrizz.com"
+		adminEmail := config.AppConfig.SeedAdminEmail
+		if adminEmail == "" {
+			adminEmail = config.AppConfig.SystemReplyTo
+		}
 		phoneStr := "-"
 		if msg.Phone != nil {
 			phoneStr = *msg.Phone
 		}
+		adminURL := fmt.Sprintf("%s/admin/messages", frontendURL)
 		_, _ = ctrl.outboxService.SendTemplated(
 			"contact_admin_notification",
 			adminEmail,
@@ -116,7 +127,7 @@ func (ctrl *ContactController) Store(c *gin.Context) {
 				"phone":       phoneStr,
 				"subject":     msg.Subject,
 				"message":     msg.Message,
-				"admin_url":   "http://localhost:3000/admin/messages",
+				"admin_url":   adminURL,
 			},
 			nil,
 			func(s string) *string { return &s }("contact_message"),
@@ -128,6 +139,7 @@ func (ctrl *ContactController) Store(c *gin.Context) {
 	if channel == "talent" && req.TalentID != nil {
 		var talent models.Talent
 		if err := ctrl.db.Preload("User").First(&talent, *req.TalentID).Error; err == nil && talent.User != nil {
+			talentDashboardURL := fmt.Sprintf("%s/talent/messages", frontendURL)
 			_, _ = ctrl.outboxService.SendTemplated(
 				"contact_talent_notification",
 				talent.User.Email,
@@ -139,7 +151,7 @@ func (ctrl *ContactController) Store(c *gin.Context) {
 					"ticket_code":          msg.TicketCode,
 					"subject":              msg.Subject,
 					"message":              msg.Message,
-					"talent_dashboard_url": "http://localhost:3000/talent/messages",
+					"talent_dashboard_url": talentDashboardURL,
 				},
 				nil,
 				func(s string) *string { return &s }("contact_message"),

@@ -15,6 +15,7 @@ export interface SEOSettingData {
   robots_index?: boolean;
 }
 
+
 export async function getPublicSEO(pageKey: string): Promise<SEOSettingData | null> {
   const isServer = typeof window === "undefined";
   const apiBase = isServer
@@ -133,7 +134,7 @@ export async function constructMetadata({
     settings.site_description ||
     "Connect with vetted specialists in development, design, and digital growth.";
 
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+  const baseUrl = (process.env.NEXT_PUBLIC_SITE_URL || process.env.NEXT_PUBLIC_APP_URL || "").replace(/\/+$/, "");
   const normalizedPath = path.startsWith("/") ? path : `/${path}`;
   const canonicalUrl = `${baseUrl}${normalizedPath === "/" ? "" : normalizedPath}`;
 

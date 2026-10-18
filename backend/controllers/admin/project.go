@@ -352,16 +352,27 @@ func (ctrl *ProjectController) sendReviewEmail(project models.Project, previousS
 	if project.Status == "rejected" {
 		templateKey = "content_rejected"
 	}
+	frontendURL := config.AppConfig.FrontendURL
+	if frontendURL == "" {
+		frontendURL = config.AppConfig.AppURL
+	}
+	publicURL := fmt.Sprintf("%s/projects/%s", frontendURL, project.Slug)
+	editURL := fmt.Sprintf("%s/talent/projects", frontendURL)
+
 	_, _ = ctrl.outboxService.SendTemplated(
 		templateKey,
 		author.Email,
 		&author.Name,
 		map[string]string{
-			"name":         author.Name,
-			"content_type": "project",
-			"title":        project.Title,
-			"review_note":  reviewNote,
-			"dashboard_url": "http://localhost:3000/talent/revisions",
+			"talent_name":   author.Name,
+			"name":          author.Name,
+			"entity_type":   "portfolio project",
+			"content_type":  "portfolio project",
+			"title":         project.Title,
+			"public_url":    publicURL,
+			"review_note":   reviewNote,
+			"edit_url":      editURL,
+			"dashboard_url": editURL,
 		},
 		nil,
 		func(s string) *string { return &s }("project"),

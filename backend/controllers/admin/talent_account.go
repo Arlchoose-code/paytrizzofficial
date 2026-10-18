@@ -117,7 +117,7 @@ func (ctrl *TalentController) ResetPassword(c *gin.Context) {
 	if sendEmail {
 		frontendURL := config.AppConfig.FrontendURL
 		if frontendURL == "" {
-			frontendURL = "https://paytrizz.com"
+			frontendURL = config.AppConfig.AppURL
 		}
 		loginURL := frontendURL + "/login"
 		changeURL := frontendURL + "/change-password"
