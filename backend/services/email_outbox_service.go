@@ -4,7 +4,10 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"paytrizz-backend/config"
 	"paytrizz-backend/models"
+	"regexp"
+	"strconv"
 	"strings"
 	"time"
 
@@ -72,16 +75,7 @@ func (s *EmailOutboxService) SendTemplated(
 		return nil, err
 	}
 
-	subject := tmpl.Subject
-	bodyHTML := tmpl.BodyHTML
-	bodyText := tmpl.BodyText
-
-	for k, v := range vars {
-		placeholder := fmt.Sprintf("{{%s}}", k)
-		subject = strings.ReplaceAll(subject, placeholder, v)
-		bodyHTML = strings.ReplaceAll(bodyHTML, placeholder, v)
-		bodyText = strings.ReplaceAll(bodyText, placeholder, v)
-	}
+	subject, bodyHTML, bodyText := InterpolateTemplate(tmpl.Subject, tmpl.BodyHTML, tmpl.BodyText, vars)
 
 	return s.Enqueue(
 		&templateKey,
@@ -94,6 +88,84 @@ func (s *EmailOutboxService) SendTemplated(
 		relatedType,
 		relatedID,
 	)
+}
+
+// InterpolateTemplate populates variables, synchronizes aliases, injects global defaults, and purges lingering placeholders
+func InterpolateTemplate(rawSubject, rawBodyHTML, rawBodyText string, vars map[string]string) (string, string, string) {
+	frontendURL := ""
+	if config.AppConfig != nil {
+		frontendURL = config.AppConfig.FrontendURL
+		if frontendURL == "" {
+			frontendURL = config.AppConfig.AppURL
+		}
+	}
+	frontendURL = strings.TrimRight(frontendURL, "/")
+
+	// Build robust merged dictionary with global fallbacks and aliases
+	mergedVars := map[string]string{
+		"frontend_url":        frontendURL,
+		"login_url":           frontendURL + "/login",
+		"change_password_url": frontendURL + "/change-password",
+		"reset_url":           frontendURL + "/reset-password",
+		"admin_url":           frontendURL + "/admin",
+		"year":                strconv.Itoa(time.Now().Year()),
+	}
+	if config.AppConfig != nil && config.AppConfig.AppName != "" {
+		mergedVars["app_name"] = config.AppConfig.AppName
+		mergedVars["site_name"] = config.AppConfig.AppName
+	}
+
+	// Overlay explicit variables
+	for k, v := range vars {
+		mergedVars[k] = v
+	}
+
+	// Synchronize common alias pairs so templates never fail on naming variance
+	if p, ok := mergedVars["initial_password"]; ok && mergedVars["password"] == "" {
+		mergedVars["password"] = p
+	} else if p, ok := mergedVars["password"]; ok && mergedVars["initial_password"] == "" {
+		mergedVars["initial_password"] = p
+	}
+	if e, ok := mergedVars["email"]; ok && mergedVars["login_email"] == "" {
+		mergedVars["login_email"] = e
+	} else if e, ok := mergedVars["login_email"]; ok && mergedVars["email"] == "" {
+		mergedVars["email"] = e
+	}
+	if n, ok := mergedVars["name"]; ok && mergedVars["full_name"] == "" {
+		mergedVars["full_name"] = n
+	} else if n, ok := mergedVars["full_name"]; ok && mergedVars["name"] == "" {
+		mergedVars["name"] = n
+	}
+	if t, ok := mergedVars["talent_name"]; ok && mergedVars["name"] == "" {
+		mergedVars["name"] = t
+	}
+	if a, ok := mergedVars["approvals_url"]; ok && mergedVars["review_url"] == "" {
+		mergedVars["review_url"] = a
+	} else if r, ok := mergedVars["review_url"]; ok && mergedVars["approvals_url"] == "" {
+		mergedVars["approvals_url"] = r
+	}
+
+	subject := rawSubject
+	bodyHTML := rawBodyHTML
+	bodyText := rawBodyText
+
+	for k, v := range mergedVars {
+		placeholder := fmt.Sprintf("{{%s}}", k)
+		subject = strings.ReplaceAll(subject, placeholder, v)
+		bodyHTML = strings.ReplaceAll(bodyHTML, placeholder, v)
+		bodyText = strings.ReplaceAll(bodyText, placeholder, v)
+	}
+
+	// Failsafe: safely remove any leftover unresolved {{...}} tags so raw syntax never leaks to recipients
+	rePlaceholder := regexp.MustCompile(`\{\{[a-zA-Z0-9_]+\}\}`)
+	if rePlaceholder.MatchString(subject) || rePlaceholder.MatchString(bodyHTML) || rePlaceholder.MatchString(bodyText) {
+		log.Printf("[EmailOutboxService] Warning: Template contained leftover unmapped placeholders; stripping them safely")
+		subject = rePlaceholder.ReplaceAllString(subject, "")
+		bodyHTML = rePlaceholder.ReplaceAllString(bodyHTML, "")
+		bodyText = rePlaceholder.ReplaceAllString(bodyText, "")
+	}
+
+	return subject, bodyHTML, bodyText
 }
 
 // MaskInitialPassword masks temporary password after status sent to prevent cleartext credential leaks
