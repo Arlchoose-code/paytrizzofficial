@@ -43,14 +43,29 @@ export function Navbar({ initialSettings }: NavbarProps) {
       .catch(() => {});
   }, []);
 
+  // Auto-close mobile menu on route change
+  useEffect(() => {
+    setMobileMenuOpen(false);
+  }, [pathname]);
+
+  // Close on Escape key
+  useEffect(() => {
+    if (!mobileMenuOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setMobileMenuOpen(false);
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [mobileMenuOpen]);
+
   const logoUrl = settings?.logo_url || settings?.site_logo_light;
   const siteName = settings?.site_name || "PayTrizz";
 
   return (
     <header className="sticky top-4 z-50 w-full px-4 sm:px-6">
-      <div className="max-w-[1200px] mx-auto">
+      <div className="max-w-[1200px] mx-auto relative">
         <nav
-          className="relative bg-white/85 backdrop-blur-md border border-neutral-200/80 shadow-[0_8px_30px_rgba(29,32,35,0.06)] rounded-full py-2.5 px-4 sm:px-6 flex items-center justify-between transition-all"
+          className="relative z-50 bg-white/85 backdrop-blur-md border border-neutral-200/80 shadow-[0_8px_30px_rgba(29,32,35,0.06)] rounded-full py-2.5 px-4 sm:px-6 flex items-center justify-between transition-all"
           aria-label="Global"
         >
           {/* Left: Brand Logo */}
@@ -105,14 +120,26 @@ export function Navbar({ initialSettings }: NavbarProps) {
           </div>
         </nav>
 
-        {/* Mobile Dropdown Menu with smooth height & opacity transition */}
+        {/* Mobile Backdrop Overlay (tapping outside closes menu) */}
+        {mobileMenuOpen && (
+          <div
+            className="fixed inset-0 z-40 bg-ink-950/20 backdrop-blur-[2px] md:hidden transition-opacity duration-200"
+            onClick={() => setMobileMenuOpen(false)}
+            aria-hidden="true"
+          />
+        )}
+
+        {/* Mobile Floating Dropdown Menu (Absolute - floats over page without pushing content) */}
         <div
+          id="mobile-nav-menu"
           className={cn(
-            "md:hidden overflow-hidden transition-all duration-300 ease-in-out",
-            mobileMenuOpen ? "max-h-[500px] opacity-100 mt-2" : "max-h-0 opacity-0 mt-0 pointer-events-none"
+            "md:hidden absolute top-[calc(100%+8px)] left-0 right-0 z-50 transition-all duration-200 ease-out origin-top",
+            mobileMenuOpen
+              ? "opacity-100 scale-100 translate-y-0 pointer-events-auto"
+              : "opacity-0 scale-95 -translate-y-2 pointer-events-none"
           )}
         >
-          <div className="bg-white/95 backdrop-blur-md border border-neutral-200 shadow-xl rounded-3xl p-5 space-y-4">
+          <div className="bg-white/95 backdrop-blur-md border border-neutral-200/90 shadow-[0_20px_50px_rgba(29,32,35,0.12)] rounded-3xl p-5 space-y-4">
             <div className="flex flex-col space-y-1">
               {NAV_ITEMS.map((item) => (
                 <Link
