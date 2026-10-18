@@ -264,6 +264,7 @@ func RegisterAdminRoutes(
 		{
 			mailMonitor.GET("", mailMonitorCtrl.Index)
 			mailMonitor.GET("/:id", mailMonitorCtrl.ShowMailbox)
+			mailMonitor.DELETE("/:id", mailMonitorCtrl.Destroy)
 		}
 
 		mailLogs := adminGroup.Group("/mail-logs")

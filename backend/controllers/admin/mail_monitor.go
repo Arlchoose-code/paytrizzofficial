@@ -8,6 +8,7 @@ import (
 	"paytrizz-backend/services"
 	"paytrizz-backend/structs"
 	"strconv"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
@@ -27,6 +28,8 @@ func (ctrl *MailMonitorController) Index(c *gin.Context) {
 	var mailboxes []models.Mailbox
 	if err := ctrl.db.Preload("User").
 		Where("owner_type = ?", models.MailboxOwnerTalent).
+		Where("status != ?", models.MailboxStatusDeleted).
+		Where("deleted_at IS NULL").
 		Order("id DESC").Find(&mailboxes).Error; err != nil {
 		helpers.RespondError(c, http.StatusInternalServerError, "Failed to retrieve monitored mailboxes")
 		return
@@ -94,4 +97,44 @@ func (ctrl *MailMonitorController) ShowMailbox(c *gin.Context) {
 			"messages": messages,
 		},
 	})
+}
+
+// Destroy deletes/purges a monitored talent mailbox and its emails
+func (ctrl *MailMonitorController) Destroy(c *gin.Context) {
+	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
+	if err != nil {
+		helpers.RespondError(c, http.StatusBadRequest, "Invalid mailbox ID")
+		return
+	}
+
+	var mailbox models.Mailbox
+	if err := ctrl.db.First(&mailbox, id).Error; err != nil {
+		helpers.RespondError(c, http.StatusNotFound, "Mailbox not found")
+		return
+	}
+
+	userIDVal, _ := c.Get("UserID")
+	var actorID *uint64
+	if userIDVal != nil {
+		uid := userIDVal.(uint64)
+		actorID = &uid
+	}
+
+	now := time.Now()
+	mailbox.Status = models.MailboxStatusDeleted
+	mailbox.DeletedAt = &now
+	if actorID != nil {
+		mailbox.DeletedByID = actorID
+	}
+	_ = ctrl.db.Save(&mailbox)
+
+	// Hard delete or purge messages in this mailbox
+	_ = ctrl.db.Where("mailbox_id = ?", mailbox.ID).Delete(&models.MailMessage{})
+
+	ip := c.ClientIP()
+	ua := c.Request.UserAgent()
+	meta := fmt.Sprintf(`{"action":"deleted_mailbox","address":"%s"}`, mailbox.Address)
+	_ = ctrl.logService.LogEvent(models.MailLogEventMailboxDeleted, actorID, &mailbox.ID, &mailbox.Address, mailbox.UserID, nil, &ip, &ua, &meta)
+
+	helpers.RespondSuccess(c, http.StatusOK, "Mailbox and all associated messages successfully deleted", nil)
 }

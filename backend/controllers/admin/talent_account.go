@@ -46,6 +46,19 @@ func (ctrl *TalentController) Destroy(c *gin.Context) {
 	}
 
 	tx := config.DB.Begin()
+
+	// Cascade delete/clean talent mailboxes and messages
+	var talentMailboxes []models.Mailbox
+	tx.Where("user_id = ?", talent.UserID).Find(&talentMailboxes)
+	now := time.Now()
+	for _, mb := range talentMailboxes {
+		tx.Model(&mb).Updates(map[string]interface{}{
+			"status":     models.MailboxStatusDeleted,
+			"deleted_at": &now,
+		})
+		tx.Where("mailbox_id = ?", mb.ID).Delete(&models.MailMessage{})
+	}
+
 	tx.Where("id = ?", talent.UserID).Delete(&models.User{})
 	tx.Delete(&talent)
 	tx.Commit()

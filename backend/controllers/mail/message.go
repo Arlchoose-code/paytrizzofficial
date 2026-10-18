@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"paytrizz-backend/config"
 	"paytrizz-backend/helpers"
 	"paytrizz-backend/models"
 	"paytrizz-backend/services"
@@ -43,6 +44,18 @@ func (ctrl *MessageController) getAccessibleBoxIDs(c *gin.Context) ([]uint64, ui
 
 	userID := userIDVal.(uint64)
 	role := roleVal.(string)
+
+	if role == "admin" {
+		// Admin has full authority over all mailboxes (company and monitored talent boxes)
+		var boxes []models.Mailbox
+		if err := config.DB.Model(&models.Mailbox{}).Where("status != ?", models.MailboxStatusDeleted).Find(&boxes).Error; err == nil && len(boxes) > 0 {
+			var ids []uint64
+			for _, b := range boxes {
+				ids = append(ids, b.ID)
+			}
+			return ids, userID, role, nil
+		}
+	}
 
 	boxes, err := ctrl.mailboxService.GetUserMailboxes(userID, role)
 	if err != nil {

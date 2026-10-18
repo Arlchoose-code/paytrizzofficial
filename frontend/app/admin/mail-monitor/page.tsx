@@ -7,6 +7,7 @@ import {
   Search,
   Eye,
   ArrowLeft,
+  Trash2,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -31,6 +32,7 @@ export default function MailMonitorPage() {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [inspectingBox, setInspectingBox] = useState<MonitoredMailbox | null>(null);
+  const [deletingId, setDeletingId] = useState<number | null>(null);
 
   const fetchMonitoredAccounts = useCallback(async () => {
     setLoading(true);
@@ -48,6 +50,29 @@ export default function MailMonitorPage() {
       setLoading(false);
     }
   }, []);
+
+  const handleDeleteMailbox = async (box: MonitoredMailbox) => {
+    if (!window.confirm(`Hapus mailbox "${box.address}" beserta seluruh email di dalamnya secara permanen?`)) {
+      return;
+    }
+    setDeletingId(box.id);
+    try {
+      const res = await fetch(`/api/proxy/admin/mail-monitor/${box.id}`, {
+        method: "DELETE",
+      });
+      const json = await res.json();
+      if (res.ok) {
+        toast.success("Mailbox dan seluruh pesan berhasil dihapus");
+        setMailboxes((prev) => prev.filter((m) => m.id !== box.id));
+      } else {
+        toast.error(json.message || "Gagal menghapus mailbox");
+      }
+    } catch {
+      toast.error("Terjadi kesalahan jaringan saat menghapus mailbox");
+    } finally {
+      setDeletingId(null);
+    }
+  };
 
   useEffect(() => {
     fetchMonitoredAccounts();
@@ -99,7 +124,7 @@ export default function MailMonitorPage() {
           <div className="space-y-4">
             <MailApp
               scope="talent"
-              readOnly={true}
+              readOnly={false}
               monitoredMailboxId={inspectingBox.id}
               monitoredMailboxAddress={inspectingBox.address}
               monitoredTalentName={inspectingBox.user?.name}
@@ -186,18 +211,29 @@ export default function MailMonitorPage() {
                           })}
                         </td>
                         <td className="py-4 px-6 text-right">
-                          <button
-                            onClick={() => {
-                              setInspectingBox(box);
-                              toast.info("Entering monitored view", {
-                                description: `Accessing ${box.address}. Event recorded in audit log.`,
-                              });
-                            }}
-                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold bg-brand-500 hover:bg-brand-400 text-ink-900 shadow-sm transition-all"
-                          >
-                            <Eye className="w-3.5 h-3.5" />
-                            <span>Inspect Mail</span>
-                          </button>
+                          <div className="flex items-center justify-end gap-2">
+                            <button
+                              onClick={() => {
+                                setInspectingBox(box);
+                                toast.info("Entering monitored view", {
+                                  description: `Accessing ${box.address}. Event recorded in audit log.`,
+                                });
+                              }}
+                              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold bg-brand-500 hover:bg-brand-400 text-ink-900 shadow-sm transition-all"
+                            >
+                              <Eye className="w-3.5 h-3.5" />
+                              <span>Inspect Mail</span>
+                            </button>
+                            <button
+                              onClick={() => handleDeleteMailbox(box)}
+                              disabled={deletingId === box.id}
+                              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 shadow-sm transition-all disabled:opacity-50"
+                              title="Delete mailbox and all messages"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                              <span>Delete</span>
+                            </button>
+                          </div>
                         </td>
                       </tr>
                     ))
