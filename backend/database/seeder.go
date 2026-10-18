@@ -2,14 +2,57 @@ package database
 
 import (
 	"log"
+	"os"
 	"paytrizz-backend/database/seeders"
+	"paytrizz-backend/models"
 	"paytrizz-backend/services"
 
 	"gorm.io/gorm"
 )
 
+// ShouldRunSeeders determines whether seeders should be executed
+func ShouldRunSeeders(db *gorm.DB) bool {
+	// 1. Explicit force flag via env or cli args
+	if os.Getenv("RUN_SEEDERS") == "true" {
+		return true
+	}
+	for _, arg := range os.Args[1:] {
+		if arg == "--seed" || arg == "-seed" {
+			return true
+		}
+	}
+
+	// 2. Check system_seeded marker
+	var seededSetting models.SiteSetting
+	if err := db.Where("`key` = ?", "system_seeded").First(&seededSetting).Error; err == nil {
+		return false
+	}
+
+	// 3. Check if database already has users (already in use / initialized)
+	var userCount int64
+	if err := db.Model(&models.User{}).Count(&userCount).Error; err == nil && userCount > 0 {
+		// Existing database with data: write marker and do not re-seed
+		db.Create(&models.SiteSetting{
+			Group:    "system",
+			Key:      "system_seeded",
+			Value:    `"true"`,
+			Type:     "string",
+			IsPublic: false,
+		})
+		return false
+	}
+
+	// 4. Fresh, completely empty database
+	return true
+}
+
 // RunSeeders orchestrates all individual model seeders idempotently
 func RunSeeders(db *gorm.DB) error {
+	if !ShouldRunSeeders(db) {
+		log.Println("[Database] Database already initialized. Skipping seeders (set RUN_SEEDERS=true or pass --seed to force re-seed).")
+		return nil
+	}
+
 	log.Println("Starting database seeders...")
 
 	// 1. User seeder
@@ -171,6 +214,18 @@ func RunSeeders(db *gorm.DB) error {
 	if err := seeders.SeedMailMessages(db); err != nil {
 		log.Printf("Mail messages seeder failed: %v", err)
 		return err
+	}
+
+	// Mark database as seeded so dummy data is never re-inserted on restarts
+	var seededSetting models.SiteSetting
+	if err := db.Where("`key` = ?", "system_seeded").First(&seededSetting).Error; err != nil {
+		db.Create(&models.SiteSetting{
+			Group:    "system",
+			Key:      "system_seeded",
+			Value:    `"true"`,
+			Type:     "string",
+			IsPublic: false,
+		})
 	}
 
 	log.Println("All seeders executed successfully.")
