@@ -1,0 +1,68 @@
+# Ignore everything in root by default except backend, frontend, and .gitignore
+/*
+!/backend/
+!/frontend/
+!/.gitignore
+
+# Ignore all markdown documentation files
+*.md
+**/*.md
+
+# Environment files - strictly ignore ALL env files, examples, and backups
+*.env*
+**/*.env*
+.env
+.env.*
+.env.example
+.env.local
+.env.production
+.env.staging
+.env.development
+
+
+# Node & Next.js
+node_modules/
+.next/
+out/
+build/
+dist/
+*.tsbuildinfo
+npm-debug.log*
+yarn-debug.log*
+
+# Go binaries & build artifacts
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+backend/tmp/
+backend/main
+backend/paytrizz-backend.exe
+backend/server.exe
+
+# Storage private (emails, attachments, uploads)
+storage/private/
+backend/storage/private/**
+backend/storage/media/**
+!backend/storage/media/.gitkeep
+!backend/storage/private/.gitkeep
+
+# OS & Editor
+.DS_Store
+Thumbs.db
+desktop.ini
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# QA & Python
+__pycache__/
+*.pyc
+qa_proofs/
+qa/
+_attach/
+scripts/
