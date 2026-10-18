@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { DashboardLayout } from "@/components/shared/DashboardLayout";
 import { MailApp } from "@/components/mail/MailApp";
+import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
 import {
   Search,
   Eye,
@@ -32,7 +33,8 @@ export default function MailMonitorPage() {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [inspectingBox, setInspectingBox] = useState<MonitoredMailbox | null>(null);
-  const [deletingId, setDeletingId] = useState<number | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<MonitoredMailbox | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   const fetchMonitoredAccounts = useCallback(async () => {
     setLoading(true);
@@ -51,26 +53,25 @@ export default function MailMonitorPage() {
     }
   }, []);
 
-  const handleDeleteMailbox = async (box: MonitoredMailbox) => {
-    if (!window.confirm(`Hapus mailbox "${box.address}" beserta seluruh email di dalamnya secara permanen?`)) {
-      return;
-    }
-    setDeletingId(box.id);
+  const handleConfirmDelete = async () => {
+    if (!deleteTarget) return;
+    setDeleting(true);
     try {
-      const res = await fetch(`/api/proxy/admin/mail-monitor/${box.id}`, {
+      const res = await fetch(`/api/proxy/admin/mail-monitor/${deleteTarget.id}`, {
         method: "DELETE",
       });
       const json = await res.json();
       if (res.ok) {
         toast.success("Mailbox dan seluruh pesan berhasil dihapus");
-        setMailboxes((prev) => prev.filter((m) => m.id !== box.id));
+        setMailboxes((prev) => prev.filter((m) => m.id !== deleteTarget.id));
+        setDeleteTarget(null);
       } else {
         toast.error(json.message || "Gagal menghapus mailbox");
       }
     } catch {
       toast.error("Terjadi kesalahan jaringan saat menghapus mailbox");
     } finally {
-      setDeletingId(null);
+      setDeleting(false);
     }
   };
 
@@ -225,9 +226,8 @@ export default function MailMonitorPage() {
                               <span>Inspect Mail</span>
                             </button>
                             <button
-                              onClick={() => handleDeleteMailbox(box)}
-                              disabled={deletingId === box.id}
-                              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 shadow-sm transition-all disabled:opacity-50"
+                              onClick={() => setDeleteTarget(box)}
+                              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 shadow-sm transition-all cursor-pointer"
                               title="Delete mailbox and all messages"
                             >
                               <Trash2 className="w-3.5 h-3.5" />
@@ -244,6 +244,22 @@ export default function MailMonitorPage() {
           </div>
         )}
       </div>
+
+      <ConfirmDialog
+        open={deleteTarget !== null}
+        title="Hapus Mailbox?"
+        description={
+          <span>
+            Hapus mailbox <strong className="text-ink-900 font-bold">&ldquo;{deleteTarget?.address}&rdquo;</strong> beserta seluruh email di dalamnya secara permanen? Tindakan ini tidak dapat dibatalkan.
+          </span>
+        }
+        confirmLabel="Hapus Permanen"
+        cancelLabel="Batal"
+        danger
+        loading={deleting}
+        onCancel={() => setDeleteTarget(null)}
+        onConfirm={handleConfirmDelete}
+      />
     </DashboardLayout>
   );
 }
