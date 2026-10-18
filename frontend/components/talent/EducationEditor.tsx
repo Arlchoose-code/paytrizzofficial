@@ -19,14 +19,14 @@ interface EducationEditorProps {
 export function EducationEditor({ educations, onChange }: EducationEditorProps) {
   const addEducation = () => {
     onChange([
-      ...educations,
       {
         degree: "",
         institution: "",
         field_of_study: "",
-        start_year: 2020,
-        end_year: 2024,
+        start_year: new Date().getFullYear() - 4,
+        end_year: new Date().getFullYear(),
       },
+      ...educations,
     ]);
   };
 

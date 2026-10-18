@@ -16,6 +16,7 @@ import {
   Settings as SettingsIcon,
   Tag,
   BellOff,
+  X,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -76,6 +77,8 @@ interface MailSidebarProps {
   onManageMailboxes: () => void;
   onOpenManageLabels?: () => void;
   onOpenManageSubscriptions?: () => void;
+  isMobileDrawer?: boolean;
+  onCloseMobileDrawer?: () => void;
 }
 
 export function MailSidebar({
@@ -95,9 +98,42 @@ export function MailSidebar({
   onManageMailboxes,
   onOpenManageLabels,
   onOpenManageSubscriptions,
+  isMobileDrawer = false,
+  onCloseMobileDrawer,
 }: MailSidebarProps) {
+  const handleFolderClick = (key: string) => {
+    onSelectFolder(key);
+    if (isMobileDrawer) onCloseMobileDrawer?.();
+  };
+
+  const handleLabelClick = (id: number | null) => {
+    if (onSelectLabel) onSelectLabel(id);
+    if (isMobileDrawer) onCloseMobileDrawer?.();
+  };
+
   return (
-    <div className="w-[240px] flex-shrink-0 border-r border-ink-100 bg-[#FAFAFA] flex flex-col p-4 space-y-4">
+    <div
+      className={cn(
+        "bg-[#FAFAFA] flex flex-col p-4 space-y-4",
+        isMobileDrawer
+          ? "w-full h-full overflow-y-auto"
+          : "w-[240px] flex-shrink-0 border-r border-ink-100 hidden lg:flex"
+      )}
+    >
+      {/* Mobile drawer header */}
+      {isMobileDrawer && (
+        <div className="flex items-center justify-between pb-2 border-b border-ink-100">
+          <span className="text-xs font-bold text-ink-900 uppercase tracking-wider">Mail Navigation</span>
+          <button
+            type="button"
+            onClick={onCloseMobileDrawer}
+            className="p-1.5 text-ink-500 hover:text-ink-900 rounded-lg hover:bg-neutral-200 transition"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+      )}
+
       {/* Mailbox Switcher */}
       {!readOnly && (
         <div className="relative">
@@ -165,7 +201,7 @@ export function MailSidebar({
           return (
             <button
               key={folder.key}
-              onClick={() => onSelectFolder(folder.key)}
+              onClick={() => handleFolderClick(folder.key)}
               className={cn(
                 "w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium transition-colors",
                 isActive
@@ -218,7 +254,7 @@ export function MailSidebar({
                     <button
                       key={l.id}
                       type="button"
-                      onClick={() => onSelectLabel && onSelectLabel(l.id)}
+                      onClick={() => handleLabelClick(l.id)}
                       className={cn(
                         "w-full flex items-center justify-between px-3 py-1.5 rounded-xl text-xs font-medium transition-colors cursor-pointer text-left",
                         isLabelActive

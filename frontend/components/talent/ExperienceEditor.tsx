@@ -6,6 +6,7 @@ export interface ExperienceItem {
   id?: number;
   role_title: string;
   company: string;
+  employment_type?: string;
   location: string;
   start_date: string;
   end_date: string | null;
@@ -21,16 +22,17 @@ interface ExperienceEditorProps {
 export function ExperienceEditor({ experiences, onChange }: ExperienceEditorProps) {
   const addExperience = () => {
     onChange([
-      ...experiences,
       {
         role_title: "",
         company: "",
+        employment_type: "Full-time",
         location: "",
         start_date: new Date().toISOString().split("T")[0],
         end_date: null,
         is_current: true,
         description: "",
       },
+      ...experiences,
     ]);
   };
 
@@ -79,7 +81,7 @@ export function ExperienceEditor({ experiences, onChange }: ExperienceEditorProp
                 <Trash2 className="w-4 h-4" />
               </button>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pr-8">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pr-8">
                 <div>
                   <label className="text-[11px] font-bold text-ink-600 uppercase">Role Title *</label>
                   <input
@@ -102,6 +104,22 @@ export function ExperienceEditor({ experiences, onChange }: ExperienceEditorProp
                     onChange={(e) => updateItem(idx, "company", e.target.value)}
                     className="w-full px-3 py-2 mt-1 rounded-xl border border-ink-200 text-xs bg-white text-ink-900"
                   />
+                </div>
+
+                <div>
+                  <label className="text-[11px] font-bold text-ink-600 uppercase">Employment Type</label>
+                  <select
+                    value={exp.employment_type || ""}
+                    onChange={(e) => updateItem(idx, "employment_type", e.target.value)}
+                    className="w-full px-3 py-2 mt-1 rounded-xl border border-ink-200 text-xs bg-white text-ink-900"
+                  >
+                    <option value="">Select type</option>
+                    <option value="Full-time">Full-time</option>
+                    <option value="Part-time">Part-time</option>
+                    <option value="Freelance">Freelance</option>
+                    <option value="Contract">Contract</option>
+                    <option value="Internship">Internship</option>
+                  </select>
                 </div>
               </div>
 

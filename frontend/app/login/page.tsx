@@ -1,12 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { toast } from "sonner";
 import { Eye, EyeOff, Lock, Mail, ArrowRight, Loader2 } from "lucide-react";
 import { BrandLogo } from "@/components/shared/BrandLogo";
-import { loginApi } from "@/lib/api/auth";
+import { loginApi, getMeApi } from "@/lib/api/auth";
 import { navigateToWebmail } from "@/lib/subdomain";
 
 export default function LoginPage() {
@@ -15,6 +15,42 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [checkingSession, setCheckingSession] = useState(true);
+
+  useEffect(() => {
+    let mounted = true;
+    async function checkSession() {
+      try {
+        const res = await getMeApi();
+        if (mounted && res?.success && res.data) {
+          const user = res.data;
+          const redirectParam = typeof window !== "undefined"
+            ? new URLSearchParams(window.location.search).get("redirect")
+            : null;
+
+          if (redirectParam === "/webmail") {
+            await navigateToWebmail();
+            return;
+          }
+
+          if (user.role === "admin") {
+            router.replace("/admin");
+          } else {
+            router.replace("/talent");
+          }
+          return;
+        }
+      } catch {
+        // Not authenticated
+      } finally {
+        if (mounted) setCheckingSession(false);
+      }
+    }
+    checkSession();
+    return () => {
+      mounted = false;
+    };
+  }, [router]);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -67,6 +103,14 @@ export default function LoginPage() {
       setLoading(false);
     }
   };
+
+  if (checkingSession) {
+    return (
+      <div className="min-h-screen bg-[#FAFAFA] flex flex-col justify-center items-center">
+        <Loader2 className="w-8 h-8 animate-spin text-ink-900" />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[#FAFAFA] flex flex-col justify-center py-12 sm:px-6 lg:px-8 relative overflow-hidden">

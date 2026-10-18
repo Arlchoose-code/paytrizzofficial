@@ -32,7 +32,7 @@ export function ProfileLinksTab({ links, setLinks }: ProfileLinksTabProps) {
       toast.error("Invalid URL format (include https://)");
       return;
     }
-    setLinks([...links, { platform: newPlatform, label: newLabel.trim(), url: newUrl.trim() }]);
+    setLinks([{ platform: newPlatform, label: newLabel.trim(), url: newUrl.trim() }, ...links]);
     setNewLabel("");
     setNewUrl("");
   };
@@ -47,10 +47,21 @@ export function ProfileLinksTab({ links, setLinks }: ProfileLinksTabProps) {
         >
           <option value="github">GitHub</option>
           <option value="linkedin">LinkedIn</option>
+          <option value="instagram">Instagram</option>
+          <option value="twitter">X / Twitter</option>
+          <option value="blogger">Blogger</option>
+          <option value="medium">Medium</option>
+          <option value="youtube">YouTube</option>
+          <option value="threads">Threads</option>
+          <option value="tiktok">TikTok</option>
+          <option value="substack">Substack</option>
+          <option value="telegram">Telegram</option>
+          <option value="discord">Discord</option>
+          <option value="gitlab">GitLab</option>
           <option value="dribbble">Dribbble</option>
           <option value="behance">Behance</option>
-          <option value="twitter">Twitter / X</option>
           <option value="portfolio">Portfolio</option>
+          <option value="website">Personal Website</option>
           <option value="other">Other</option>
         </select>
         <input

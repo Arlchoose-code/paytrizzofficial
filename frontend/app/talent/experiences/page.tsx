@@ -32,6 +32,7 @@ export default function TalentExperiencesPage() {
               id: exp.id,
               role_title: exp.role_title,
               company: exp.company,
+              employment_type: exp.employment_type || "Full-time",
               location: exp.location || "",
               start_date: exp.start_date || "2024-01-01",
               end_date: exp.end_date || null,
@@ -85,6 +86,7 @@ export default function TalentExperiencesPage() {
         experiences: experiences.map((exp, idx) => ({
           role_title: exp.role_title,
           company: exp.company,
+          employment_type: exp.employment_type || "Full-time",
           location: exp.location,
           start_date: exp.start_date || "2024-01-01",
           end_date: exp.is_current ? null : exp.end_date,

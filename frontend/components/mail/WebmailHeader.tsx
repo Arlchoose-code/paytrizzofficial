@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowLeft, Mail, Search, X, PenSquare } from "lucide-react";
+import { ArrowLeft, Mail, Search, X, PenSquare, Menu } from "lucide-react";
 import { MailboxItem } from "./MailSidebar";
 import { getMainAppUrl } from "@/lib/subdomain";
 
@@ -13,6 +13,7 @@ interface WebmailHeaderProps {
   setSearchQuery: (q: string) => void;
   onOpenCompose: () => void;
   scope?: "company" | "talent";
+  onOpenMobileFolders?: () => void;
 }
 
 export function WebmailHeader({
@@ -23,15 +24,26 @@ export function WebmailHeader({
   setSearchQuery,
   onOpenCompose,
   scope = "talent",
+  onOpenMobileFolders,
 }: WebmailHeaderProps) {
   const workspaceHref = getMainAppUrl(scope === "company" ? "/admin" : "/talent");
 
   return (
-    <header className="h-16 px-6 border-b border-neutral-200 bg-white flex items-center justify-between shrink-0 z-20">
-      <div className="flex items-center gap-4">
+    <header className="h-16 px-4 sm:px-6 border-b border-neutral-200 bg-white flex items-center justify-between shrink-0 z-20">
+      <div className="flex items-center gap-2 sm:gap-4">
+        {onOpenMobileFolders && (
+          <button
+            type="button"
+            onClick={onOpenMobileFolders}
+            className="lg:hidden p-1.5 text-ink-700 hover:text-ink-900 rounded-lg hover:bg-neutral-100 transition cursor-pointer"
+            title="Open Mailboxes & Folders"
+          >
+            <Menu className="w-4 h-4" />
+          </button>
+        )}
         <Link
           href={workspaceHref}
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold text-ink-600 hover:text-ink-900 hover:bg-neutral-100 transition-colors"
+          className="inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-full text-xs font-bold text-ink-600 hover:text-ink-900 hover:bg-neutral-100 transition-colors"
           title="Back to Workspace"
         >
           <ArrowLeft className="w-3.5 h-3.5" />

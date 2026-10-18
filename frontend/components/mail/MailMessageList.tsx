@@ -13,6 +13,7 @@ import {
   Check,
   Tag,
   Trash2,
+  Menu,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { MessageItem } from "./MailReadingPane";
@@ -36,6 +37,7 @@ interface MailMessageListProps {
   onBulkTrash: () => void;
   onBulkAssignLabel: (labelId: number) => void;
   onRefresh: () => void;
+  onOpenMobileFolders?: () => void;
 }
 
 export function MailMessageList({
@@ -56,6 +58,7 @@ export function MailMessageList({
   onBulkTrash,
   onBulkAssignLabel,
   onRefresh,
+  onOpenMobileFolders,
 }: MailMessageListProps) {
   const [bulkLabelOpen, setBulkLabelOpen] = useState(false);
 
@@ -70,7 +73,7 @@ export function MailMessageList({
   };
 
   return (
-    <div className="w-[380px] lg:w-[420px] flex-shrink-0 border-r border-ink-100 flex flex-col bg-white">
+    <div className="w-full lg:w-[380px] xl:w-[420px] flex-shrink-0 border-r border-ink-100 flex flex-col bg-white h-full">
       {/* Top Search & Filter Bar */}
       <div className="p-3 border-b border-ink-100 space-y-2">
         <div className="relative">
@@ -87,6 +90,16 @@ export function MailMessageList({
         {/* Quick action bar */}
         <div className="flex items-center justify-between pt-1 text-ink-500 text-xs">
           <div className="flex items-center gap-2">
+            {onOpenMobileFolders && (
+              <button
+                type="button"
+                onClick={onOpenMobileFolders}
+                className="lg:hidden p-1 text-ink-700 hover:text-ink-900 rounded hover:bg-ink-100 transition cursor-pointer"
+                title="Mailboxes & Folders"
+              >
+                <Menu className="w-4 h-4" />
+              </button>
+            )}
             <button
               onClick={onToggleSelectAll}
               className="p-1 hover:text-ink-900 rounded"

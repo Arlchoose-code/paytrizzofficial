@@ -213,15 +213,16 @@ func (ctrl *TalentController) Show(c *gin.Context) {
 			endDateStr = &str
 		}
 		experienceItems = append(experienceItems, structs.TalentExperienceItem{
-			ID:          exp.ID,
-			RoleTitle:   exp.RoleTitle,
-			Company:     exp.Company,
-			Location:    exp.Location,
-			StartDate:   exp.StartDate.Format("2006-01-02"),
-			EndDate:     endDateStr,
-			IsCurrent:   exp.IsCurrent,
-			Description: exp.Description,
-			SortOrder:   exp.SortOrder,
+			ID:             exp.ID,
+			RoleTitle:      exp.RoleTitle,
+			Company:        exp.Company,
+			EmploymentType: exp.EmploymentType,
+			Location:       exp.Location,
+			StartDate:      exp.StartDate.Format("2006-01-02"),
+			EndDate:        endDateStr,
+			IsCurrent:      exp.IsCurrent,
+			Description:    exp.Description,
+			SortOrder:      exp.SortOrder,
 		})
 	}
 

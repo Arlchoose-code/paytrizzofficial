@@ -10,15 +10,16 @@ type TalentSkillItem struct {
 }
 
 type TalentExperienceItem struct {
-	ID          uint64     `json:"id,omitempty"`
-	RoleTitle   string     `json:"role_title"`
-	Company     string     `json:"company"`
-	Location    string     `json:"location"`
-	StartDate   string     `json:"start_date"` // YYYY-MM-DD
-	EndDate     *string    `json:"end_date"`   // YYYY-MM-DD or null
-	IsCurrent   bool       `json:"is_current"`
-	Description string     `json:"description"`
-	SortOrder   int        `json:"sort_order"`
+	ID             uint64  `json:"id,omitempty"`
+	RoleTitle      string  `json:"role_title"`
+	Company        string  `json:"company"`
+	EmploymentType string  `json:"employment_type,omitempty"`
+	Location       string  `json:"location"`
+	StartDate      string  `json:"start_date"` // YYYY-MM-DD
+	EndDate        *string `json:"end_date"`   // YYYY-MM-DD or null
+	IsCurrent      bool    `json:"is_current"`
+	Description    string  `json:"description"`
+	SortOrder      int     `json:"sort_order"`
 }
 
 type TalentEducationItem struct {

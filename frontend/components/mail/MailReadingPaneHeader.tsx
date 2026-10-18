@@ -9,6 +9,7 @@ import {
   Tag,
   Check,
   Pencil,
+  ArrowLeft,
 } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
@@ -25,6 +26,7 @@ interface MailReadingPaneHeaderProps {
   onToggleStar: (id: number, currentStarred: boolean) => void;
   onMoveFolder: (id: number, folder: string) => void;
   onAssignLabels?: (messageId: number, labelIds: number[]) => Promise<void>;
+  onBack?: () => void;
 }
 
 export function MailReadingPaneHeader({
@@ -38,12 +40,23 @@ export function MailReadingPaneHeader({
   onToggleStar,
   onMoveFolder,
   onAssignLabels,
+  onBack,
 }: MailReadingPaneHeaderProps) {
   const [labelDropdownOpen, setLabelDropdownOpen] = useState(false);
 
   return (
-    <div className="px-6 py-3 border-b border-ink-100 flex items-center justify-between bg-[#FAFAFA] shrink-0">
+    <div className="px-4 sm:px-6 py-3 border-b border-ink-100 flex items-center justify-between bg-[#FAFAFA] shrink-0">
       <div className="flex items-center gap-2">
+        {onBack && (
+          <button
+            type="button"
+            onClick={onBack}
+            className="lg:hidden p-1.5 -ml-2 mr-1 text-ink-600 hover:text-ink-900 rounded-full hover:bg-neutral-200 transition cursor-pointer"
+            title="Back to message list"
+          >
+            <ArrowLeft className="w-4 h-4" />
+          </button>
+        )}
         {!readOnly && (
           <>
             {message.folder === "drafts" || message.state === "draft" ? (

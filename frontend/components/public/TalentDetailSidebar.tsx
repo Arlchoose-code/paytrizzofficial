@@ -1,3 +1,5 @@
+"use client";
+
 import { Mail, Download } from "lucide-react";
 
 interface TalentDetailSidebarProps {
@@ -18,6 +20,13 @@ interface TalentDetailSidebarProps {
 }
 
 export function TalentDetailSidebar({ talent }: TalentDetailSidebarProps) {
+  const handleHireClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    e.preventDefault();
+    const contactEl = document.getElementById("contact");
+    if (contactEl) {
+      contactEl.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  };
   return (
     <div className="lg:col-span-4 sticky top-24 space-y-6">
       <div className="bg-neutral-50 rounded-3xl p-6 sm:p-8 border border-neutral-200/80 shadow-sm space-y-6">
@@ -59,7 +68,8 @@ export function TalentDetailSidebar({ talent }: TalentDetailSidebarProps) {
         <div className="pt-2 flex flex-col gap-3">
           <a
             href="#contact"
-            className="w-full py-3.5 inline-flex items-center justify-center gap-2 bg-brand-500 text-ink-900 font-bold rounded-full hover:bg-brand-600 transition-all text-sm shadow-sm"
+            onClick={handleHireClick}
+            className="w-full py-3.5 inline-flex items-center justify-center gap-2 bg-brand-500 text-ink-900 font-bold rounded-full hover:bg-brand-600 transition-all text-sm shadow-sm cursor-pointer"
           >
             <Mail className="w-4 h-4" />
             <span>Hire {talent.name}</span>

@@ -50,6 +50,7 @@ export function MailApp({
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
+  const [mobileFoldersOpen, setMobileFoldersOpen] = useState(false);
 
   // Modals & Reply
   const [showCompose, setShowCompose] = useState(false);
@@ -405,6 +406,7 @@ export function MailApp({
           setSearchQuery={setSearchQuery}
           onOpenCompose={handleOpenNewCompose}
           scope={scope}
+          onOpenMobileFolders={() => setMobileFoldersOpen(true)}
         />
       )}
 
@@ -430,9 +432,77 @@ export function MailApp({
         </div>
       )}
 
+      {/* Mobile Slide-Over Folders Drawer */}
+      <div
+        className={cn(
+          "fixed inset-0 z-50 lg:hidden flex transition-all duration-300",
+          mobileFoldersOpen ? "pointer-events-auto visible" : "pointer-events-none invisible"
+        )}
+      >
+        <div
+          className={cn(
+            "fixed inset-0 bg-ink-900/50 transition-opacity duration-300 ease-in-out",
+            mobileFoldersOpen ? "opacity-100" : "opacity-0"
+          )}
+          onClick={() => setMobileFoldersOpen(false)}
+        />
+        <div
+          className={cn(
+            "relative w-72 bg-[#FAFAFA] flex flex-col z-10 shadow-2xl transition-transform duration-300 ease-in-out h-full",
+            mobileFoldersOpen ? "translate-x-0" : "-translate-x-full"
+          )}
+        >
+          <MailSidebar
+            scope={scope}
+            readOnly={readOnly}
+            mailboxes={mailboxes}
+            selectedMailboxId={selectedMailboxId}
+            onSelectMailbox={(id) => setSelectedMailboxId(id)}
+            activeFolder={activeFolder}
+            onSelectFolder={(f) => {
+              setActiveFolder(f);
+              setActiveLabelId(null);
+              setSelectedMessage(null);
+              setMobileFoldersOpen(false);
+            }}
+            folderCounts={folderCounts}
+            labels={labels}
+            activeLabelId={activeLabelId}
+            onSelectLabel={(id) => {
+              setActiveLabelId(id);
+              setActiveFolder("");
+              setSelectedMessage(null);
+              setMobileFoldersOpen(false);
+            }}
+            onOpenCompose={() => {
+              setMobileFoldersOpen(false);
+              handleOpenNewCompose();
+            }}
+            onOpenAddMailbox={() => {
+              setMobileFoldersOpen(false);
+              setShowAddMailbox(true);
+            }}
+            onManageMailboxes={() => {
+              setMobileFoldersOpen(false);
+              setShowManageMailboxes(true);
+            }}
+            onOpenManageLabels={() => {
+              setMobileFoldersOpen(false);
+              setShowManageLabels(true);
+            }}
+            onOpenManageSubscriptions={() => {
+              setMobileFoldersOpen(false);
+              setShowManageSubscriptions(true);
+            }}
+            isMobileDrawer={true}
+            onCloseMobileDrawer={() => setMobileFoldersOpen(false)}
+          />
+        </div>
+      </div>
+
       {/* Main 3-Column Split */}
-      <div className="flex-1 flex overflow-hidden">
-        {/* Left Column: Sidebar & Folders */}
+      <div className="flex-1 flex overflow-hidden relative">
+        {/* Left Column: Sidebar & Folders (Desktop Only) */}
         <MailSidebar
           scope={scope}
           readOnly={readOnly}
@@ -458,84 +528,101 @@ export function MailApp({
           onManageMailboxes={() => setShowManageMailboxes(true)}
           onOpenManageLabels={() => setShowManageLabels(true)}
           onOpenManageSubscriptions={() => setShowManageSubscriptions(true)}
+          isMobileDrawer={false}
         />
 
-        {/* Center Column: Message List Pane */}
-        <MailMessageList
-          messages={messages}
-          loading={loading}
-          selectedMessage={selectedMessage}
-          selectedIds={selectedIds}
-          searchQuery={searchQuery}
-          setSearchQuery={setSearchQuery}
-          activeFolder={activeFolder}
-          readOnly={readOnly}
-          labels={labels}
-          onSelectMessage={handleSelectMessage}
-          onToggleSelectAll={handleToggleSelectAll}
-          onToggleSelectOne={handleToggleSelectOne}
-          onToggleStar={handleToggleStar}
-          onBulkMarkRead={handleBulkMarkRead}
-          onBulkTrash={handleBulkTrash}
-          onBulkAssignLabel={handleBulkAssignLabel}
-          onRefresh={() => {
-            fetchMessages();
-            fetchCounts();
-          }}
-        />
+        {/* Center Column: Message List Pane (full width on mobile if no message selected, hidden on mobile if message selected) */}
+        <div
+          className={cn(
+            "h-full overflow-hidden flex flex-col",
+            selectedMessage ? "hidden lg:flex" : "flex w-full lg:w-auto"
+          )}
+        >
+          <MailMessageList
+            messages={messages}
+            loading={loading}
+            selectedMessage={selectedMessage}
+            selectedIds={selectedIds}
+            searchQuery={searchQuery}
+            setSearchQuery={setSearchQuery}
+            activeFolder={activeFolder}
+            readOnly={readOnly}
+            labels={labels}
+            onSelectMessage={handleSelectMessage}
+            onToggleSelectAll={handleToggleSelectAll}
+            onToggleSelectOne={handleToggleSelectOne}
+            onToggleStar={handleToggleStar}
+            onBulkMarkRead={handleBulkMarkRead}
+            onBulkTrash={handleBulkTrash}
+            onBulkAssignLabel={handleBulkAssignLabel}
+            onRefresh={() => {
+              fetchMessages();
+              fetchCounts();
+            }}
+            onOpenMobileFolders={() => setMobileFoldersOpen(true)}
+          />
+        </div>
 
-        {/* Right Column: Reading Pane */}
-        <MailReadingPane
-          selectedMessage={selectedMessage}
-          readOnly={readOnly}
-          allLabels={labels}
-          onAssignLabels={handleAssignLabels}
-          onReply={(to, subj, quotedHtml, originalAtts, initialCc, inReplyTo) => {
-            setEditingDraft(null);
-            setComposeInitialTo(to);
-            setComposeInitialCc(initialCc || "");
-            setComposeInitialBcc("");
-            setComposeInitialSubject(subj);
-            setComposeInitialBodyHtml(quotedHtml || "");
-            setComposeInitialInReplyTo(inReplyTo || "");
-            setComposeInitialAttachments(
-              (originalAtts || []).map((a: any) => ({
-                id: a.id,
-                original_name: a.original_name || a.filename || "attachment",
-                size_bytes: a.size_bytes,
-                mime: a.mime || "application/octet-stream",
-                download_url: a.download_url,
-              }))
-            );
-            setShowCompose(true);
-          }}
-          onForward={(subj, quotedHtml, originalAtts) => {
-            setEditingDraft(null);
-            setComposeInitialTo("");
-            setComposeInitialCc("");
-            setComposeInitialBcc("");
-            setComposeInitialSubject(subj);
-            setComposeInitialBodyHtml(quotedHtml || "");
-            setComposeInitialAttachments(
-              (originalAtts || []).map((a: any) => ({
-                id: a.id,
-                original_name: a.original_name || a.filename || "attachment",
-                size_bytes: a.size_bytes,
-                mime: a.mime || "application/octet-stream",
-                download_url: a.download_url,
-              }))
-            );
-            setShowCompose(true);
-          }}
-          onEditDraft={handleEditDraft}
-          onSnooze={(id) => setSnoozeTargetId(id)}
-          onToggleStar={(id, star) => handleToggleStar(id, star)}
-          onMoveFolder={(id, fld) => handleMoveFolder(id, fld)}
-          inlineReplyText={inlineReplyText}
-          setInlineReplyText={setInlineReplyText}
-          replySending={replySending}
-          onSendReply={handleSendReply}
-        />
+        {/* Right Column: Reading Pane (hidden on mobile if no message selected, full width on mobile if message selected) */}
+        <div
+          className={cn(
+            "flex-1 h-full overflow-hidden flex flex-col",
+            selectedMessage ? "flex" : "hidden lg:flex"
+          )}
+        >
+          <MailReadingPane
+            selectedMessage={selectedMessage}
+            readOnly={readOnly}
+            allLabels={labels}
+            onAssignLabels={handleAssignLabels}
+            onBack={() => setSelectedMessage(null)}
+            onReply={(to, subj, quotedHtml, originalAtts, initialCc, inReplyTo) => {
+              setEditingDraft(null);
+              setComposeInitialTo(to);
+              setComposeInitialCc(initialCc || "");
+              setComposeInitialBcc("");
+              setComposeInitialSubject(subj);
+              setComposeInitialBodyHtml(quotedHtml || "");
+              setComposeInitialInReplyTo(inReplyTo || "");
+              setComposeInitialAttachments(
+                (originalAtts || []).map((a: any) => ({
+                  id: a.id,
+                  original_name: a.original_name || a.filename || "attachment",
+                  size_bytes: a.size_bytes,
+                  mime: a.mime || "application/octet-stream",
+                  download_url: a.download_url,
+                }))
+              );
+              setShowCompose(true);
+            }}
+            onForward={(subj, quotedHtml, originalAtts) => {
+              setEditingDraft(null);
+              setComposeInitialTo("");
+              setComposeInitialCc("");
+              setComposeInitialBcc("");
+              setComposeInitialSubject(subj);
+              setComposeInitialBodyHtml(quotedHtml || "");
+              setComposeInitialAttachments(
+                (originalAtts || []).map((a: any) => ({
+                  id: a.id,
+                  original_name: a.original_name || a.filename || "attachment",
+                  size_bytes: a.size_bytes,
+                  mime: a.mime || "application/octet-stream",
+                  download_url: a.download_url,
+                }))
+              );
+              setShowCompose(true);
+            }}
+            onEditDraft={handleEditDraft}
+            onSnooze={(id) => setSnoozeTargetId(id)}
+            onToggleStar={(id, star) => handleToggleStar(id, star)}
+            onMoveFolder={(id, fld) => handleMoveFolder(id, fld)}
+            inlineReplyText={inlineReplyText}
+            setInlineReplyText={setInlineReplyText}
+            replySending={replySending}
+            onSendReply={handleSendReply}
+          />
+        </div>
       </div>
 
       {/* Modals */}

@@ -24,6 +24,7 @@ interface MailReadingPaneProps {
   setInlineReplyText: (text: string) => void;
   replySending: boolean;
   onSendReply: () => void;
+  onBack?: () => void;
 }
 
 export function MailReadingPane({
@@ -41,6 +42,7 @@ export function MailReadingPane({
   setInlineReplyText,
   replySending,
   onSendReply,
+  onBack,
 }: MailReadingPaneProps) {
   const [showImages, setShowImages] = useState(false);
   const [expandedIds, setExpandedIds] = useState<Set<number>>(new Set());
@@ -176,6 +178,7 @@ export function MailReadingPane({
         onToggleStar={onToggleStar}
         onMoveFolder={onMoveFolder}
         onAssignLabels={onAssignLabels}
+        onBack={onBack}
       />
 
       {/* Conversation Thread Header */}

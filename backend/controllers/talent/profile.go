@@ -102,15 +102,16 @@ func (ctrl *ProfileController) Show(c *gin.Context) {
 			endDateStr = &str
 		}
 		experienceItems = append(experienceItems, structs.TalentExperienceItem{
-			ID:          exp.ID,
-			RoleTitle:   exp.RoleTitle,
-			Company:     exp.Company,
-			Location:    exp.Location,
-			StartDate:   exp.StartDate.Format("2006-01-02"),
-			EndDate:     endDateStr,
-			IsCurrent:   exp.IsCurrent,
-			Description: exp.Description,
-			SortOrder:   exp.SortOrder,
+			ID:             exp.ID,
+			RoleTitle:      exp.RoleTitle,
+			Company:        exp.Company,
+			EmploymentType: exp.EmploymentType,
+			Location:       exp.Location,
+			StartDate:      exp.StartDate.Format("2006-01-02"),
+			EndDate:        endDateStr,
+			IsCurrent:      exp.IsCurrent,
+			Description:    exp.Description,
+			SortOrder:      exp.SortOrder,
 		})
 	}
 
@@ -266,15 +267,16 @@ func (ctrl *ProfileController) Update(c *gin.Context) {
 			}
 		}
 		tx.Create(&models.TalentExperience{
-			TalentID:    talent.ID,
-			RoleTitle:   exp.RoleTitle,
-			Company:     exp.Company,
-			Location:    exp.Location,
-			StartDate:   sDate,
-			EndDate:     eDate,
-			IsCurrent:   exp.IsCurrent,
-			Description: exp.Description,
-			SortOrder:   idx + 1,
+			TalentID:       talent.ID,
+			RoleTitle:      exp.RoleTitle,
+			Company:        exp.Company,
+			EmploymentType: exp.EmploymentType,
+			Location:       exp.Location,
+			StartDate:      sDate,
+			EndDate:        eDate,
+			IsCurrent:      exp.IsCurrent,
+			Description:    exp.Description,
+			SortOrder:      idx + 1,
 		})
 	}
 

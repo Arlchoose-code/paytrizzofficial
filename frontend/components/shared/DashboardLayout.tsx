@@ -570,6 +570,32 @@ export function DashboardLayout({ children, role = "admin", title = "PayTrizz" }
               </button>
             </div>
             <nav className="p-3 flex-1 overflow-y-auto">{renderNavGroup(true)}</nav>
+
+            {/* Mobile Drawer Footer: User Profile & Logout */}
+            <div className="p-4 border-t border-ink-100 flex-shrink-0 bg-white">
+              <div className="flex items-center justify-between p-2 rounded-2xl bg-neutral-50 border border-ink-100/60">
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <div className="w-9 h-9 rounded-full bg-brand-500 flex items-center justify-center font-bold text-ink-900 text-sm flex-shrink-0">
+                    {user?.name?.[0]?.toUpperCase() || "U"}
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-xs font-bold text-ink-900 truncate">{user?.name || "Loading..."}</p>
+                    <p className="text-[11px] text-ink-500 truncate">{user?.email}</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => {
+                    setMobileMenuOpen(false);
+                    handleLogout();
+                  }}
+                  title="Logout"
+                  className="flex items-center gap-1.5 px-3 py-1.5 bg-danger/10 text-danger hover:bg-danger/20 font-bold rounded-xl text-xs transition cursor-pointer"
+                >
+                  <LogOut className="w-3.5 h-3.5" />
+                  <span>Logout</span>
+                </button>
+              </div>
+            </div>
           </div>
         </div>
 

@@ -14,7 +14,7 @@ export function TalentInquiryForm({ talentId, talentName }: TalentInquiryFormPro
     name: "",
     email: "",
     phone: "",
-    subject: `Project inquiry for ${talentName}`,
+    subject: "",
     message: "",
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -64,13 +64,13 @@ export function TalentInquiryForm({ talentId, talentName }: TalentInquiryFormPro
       name: "",
       email: "",
       phone: "",
-      subject: `Project inquiry for ${talentName}`,
+      subject: "",
       message: "",
     });
   };
 
   return (
-    <div id="contact" className="bg-white rounded-3xl p-8 sm:p-10 border border-neutral-200 shadow-md space-y-6">
+    <div id="contact" className="scroll-mt-28 sm:scroll-mt-32 bg-white rounded-3xl p-8 sm:p-10 border border-neutral-200 shadow-md space-y-6">
       <div className="space-y-1.5">
         <h3 className="text-2xl font-bold text-ink-900">
           Send a Message to {talentName}
@@ -159,7 +159,7 @@ export function TalentInquiryForm({ talentId, talentName }: TalentInquiryFormPro
                 required
                 value={formData.subject}
                 onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
-                placeholder={`Inquiry for ${talentName}`}
+                placeholder="e.g. Mobile App Redesign or Technical Consulting"
                 className="w-full h-11 px-4 mt-1 rounded-xl border border-neutral-300 text-sm text-ink-900 focus:ring-2 focus:ring-ink-900 outline-none"
               />
             </div>
@@ -182,13 +182,13 @@ export function TalentInquiryForm({ talentId, talentName }: TalentInquiryFormPro
           <button
             type="submit"
             disabled={isSubmitting}
-            className="w-full h-12 inline-flex items-center justify-center gap-2 bg-brand-500 text-ink-900 font-bold rounded-full hover:bg-brand-600 transition-all shadow-sm disabled:opacity-50"
+            className="w-full h-12 inline-flex items-center justify-center gap-2 bg-brand-500 text-ink-900 font-bold rounded-full hover:bg-brand-600 transition-all shadow-sm disabled:opacity-50 cursor-pointer"
           >
             {isSubmitting ? (
               <span>Routing message...</span>
             ) : (
               <>
-                <span>Send Message to {talentName}</span>
+                <span>Send Message</span>
                 <Send className="w-4 h-4" />
               </>
             )}
