@@ -19,14 +19,14 @@ export function MailComposeMinimized({
         className="flex items-center gap-2 truncate font-medium text-xs flex-1 mr-2"
         onClick={onRestore}
       >
-        <span className="truncate">{subject || "Pesan Baru"}</span>
+        <span className="truncate">{subject || "New Message"}</span>
       </div>
       <div className="flex items-center gap-1.5 shrink-0">
         <button
           type="button"
           onClick={onRestore}
           className="p-1 hover:text-white text-neutral-400 hover:bg-white/10 rounded transition-colors cursor-pointer"
-          title="Pulihkan"
+          title="Restore"
         >
           <Maximize2 className="w-3.5 h-3.5" />
         </button>
@@ -34,7 +34,7 @@ export function MailComposeMinimized({
           type="button"
           onClick={onClose}
           className="p-1 hover:text-white text-neutral-400 hover:bg-white/10 rounded transition-colors cursor-pointer"
-          title="Tutup"
+          title="Close"
         >
           <X className="w-3.5 h-3.5" />
         </button>

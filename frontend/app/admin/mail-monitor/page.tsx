@@ -62,14 +62,14 @@ export default function MailMonitorPage() {
       });
       const json = await res.json();
       if (res.ok) {
-        toast.success("Mailbox dan seluruh pesan berhasil dihapus");
+        toast.success("Mailbox and all messages deleted successfully");
         setMailboxes((prev) => prev.filter((m) => m.id !== deleteTarget.id));
         setDeleteTarget(null);
       } else {
-        toast.error(json.message || "Gagal menghapus mailbox");
+        toast.error(json.message || "Failed to delete mailbox");
       }
     } catch {
-      toast.error("Terjadi kesalahan jaringan saat menghapus mailbox");
+      toast.error("Network error while deleting mailbox");
     } finally {
       setDeleting(false);
     }
@@ -247,14 +247,14 @@ export default function MailMonitorPage() {
 
       <ConfirmDialog
         open={deleteTarget !== null}
-        title="Hapus Mailbox?"
+        title="Delete Mailbox?"
         description={
           <span>
-            Hapus mailbox <strong className="text-ink-900 font-bold">&ldquo;{deleteTarget?.address}&rdquo;</strong> beserta seluruh email di dalamnya secara permanen? Tindakan ini tidak dapat dibatalkan.
+            Permanently delete mailbox <strong className="text-ink-900 font-bold">&ldquo;{deleteTarget?.address}&rdquo;</strong> along with all emails inside it? This action cannot be undone.
           </span>
         }
-        confirmLabel="Hapus Permanen"
-        cancelLabel="Batal"
+        confirmLabel="Delete Permanently"
+        cancelLabel="Cancel"
         danger
         loading={deleting}
         onCancel={() => setDeleteTarget(null)}

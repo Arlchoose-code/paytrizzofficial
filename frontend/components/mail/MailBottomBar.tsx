@@ -71,14 +71,14 @@ export function MailBottomBar({
             ) : (
               <Send className="w-3.5 h-3.5" />
             )}
-            <span>{sending ? "Mengirim..." : isScheduled ? "Jadwalkan" : "Kirim"}</span>
+            <span>{sending ? "Sending..." : isScheduled ? "Schedule" : "Send"}</span>
           </button>
           <div className="w-[1px] h-4 bg-white/30" />
           <button
             type="button"
             onClick={() => setShowScheduleDropdown(!showScheduleDropdown)}
             className="px-1.5 sm:px-2 py-1.5 sm:py-2 hover:bg-white/10 rounded-r-full transition-colors cursor-pointer"
-            title="Opsi pengiriman lainnya"
+            title="More send options"
           >
             <ChevronDown className="w-3.5 h-3.5" />
           </button>
@@ -92,7 +92,7 @@ export function MailBottomBar({
                 className="w-full text-left px-3.5 py-2 hover:bg-neutral-100 flex items-center gap-2 cursor-pointer"
               >
                 <Clock className="w-3.5 h-3.5 text-neutral-500" />
-                <span>Kirim terjadwal</span>
+                <span>Schedule send</span>
               </button>
             </div>
           )}
@@ -106,7 +106,7 @@ export function MailBottomBar({
             "p-2 rounded-full hover:bg-neutral-100 transition-colors text-neutral-600 cursor-pointer",
             showToolbar && "bg-neutral-100 text-neutral-900"
           )}
-          title="Opsi pemformatan"
+          title="Formatting options"
         >
           <span className="font-serif font-bold text-xs">Aa</span>
         </button>
@@ -120,7 +120,7 @@ export function MailBottomBar({
             "p-2 rounded-full hover:bg-neutral-100 transition-colors text-neutral-600 cursor-pointer",
             uploading && "opacity-60 cursor-not-allowed"
           )}
-          title="Lampirkan file"
+          title="Attach files"
         >
           {uploading ? (
             <Loader2 className="w-4 h-4 animate-spin text-blue-600" />
@@ -137,7 +137,7 @@ export function MailBottomBar({
             "p-2 rounded-full hover:bg-neutral-100 transition-colors text-neutral-600 cursor-pointer",
             isLinkActive && "bg-blue-50 text-blue-700"
           )}
-          title="Sisipkan link (Ctrl+K)"
+          title="Insert link (Ctrl+K)"
         >
           <Link2 className="w-4 h-4" />
         </button>
@@ -148,7 +148,7 @@ export function MailBottomBar({
             type="button"
             onClick={() => setShowEmojiPicker(!showEmojiPicker)}
             className="p-2 rounded-full hover:bg-neutral-100 transition-colors text-neutral-600 cursor-pointer"
-            title="Sisipkan emoji"
+            title="Insert emoji"
           >
             <Smile className="w-4 h-4" />
           </button>
@@ -164,7 +164,7 @@ export function MailBottomBar({
           disabled={uploading}
           onClick={onImageClick}
           className="p-2 rounded-full hover:bg-neutral-100 transition-colors text-neutral-600 cursor-pointer"
-          title="Sisipkan foto / gambar"
+          title="Insert photo / image"
         >
           <ImageIcon className="w-4 h-4" />
         </button>
@@ -176,15 +176,15 @@ export function MailBottomBar({
           type="button"
           onClick={() => onSend(true)}
           className="px-2.5 py-1 text-xs font-semibold text-neutral-500 hover:text-neutral-900 hover:bg-neutral-100 rounded-lg transition-colors cursor-pointer"
-          title="Simpan sebagai draf"
+          title="Save as draft"
         >
-          Simpan Draf
+          Save Draft
         </button>
         <button
           type="button"
           onClick={onDiscard || onClose}
           className="p-1.5 sm:p-2 rounded-full hover:bg-neutral-100 text-neutral-500 hover:text-red-600 transition-colors cursor-pointer shrink-0"
-          title="Buang draf"
+          title="Discard draft"
         >
           <Trash2 className="w-4 h-4" />
         </button>

@@ -29,7 +29,7 @@ export function MailLinkModal({
         <div className="flex items-center justify-between border-b border-neutral-100 pb-2.5">
           <div className="flex items-center gap-2">
             <Link2 className="w-4 h-4 text-blue-600" />
-            <h4 className="text-sm font-bold text-neutral-900">Sisipkan Link</h4>
+            <h4 className="text-sm font-bold text-neutral-900">Insert Link</h4>
           </div>
           <button
             type="button"
@@ -43,20 +43,20 @@ export function MailLinkModal({
         <div className="space-y-3 text-xs">
           <div>
             <label className="block font-medium text-neutral-700 mb-1">
-              Teks untuk ditampilkan
+              Text to display
             </label>
             <input
               type="text"
               value={linkText}
               onChange={(e) => setLinkText(e.target.value)}
-              placeholder="Contoh: Kunjungi PayTrizz"
+              placeholder="e.g. Visit PayTrizz"
               className="w-full px-3 py-2 rounded-xl border border-neutral-300 text-xs text-neutral-900 outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
 
           <div>
             <label className="block font-medium text-neutral-700 mb-1">
-              Tautan web (URL)
+              Web link (URL)
             </label>
             <input
               type="text"
@@ -81,14 +81,14 @@ export function MailLinkModal({
             onClick={onClose}
             className="px-3.5 py-1.5 rounded-full text-xs font-semibold text-neutral-600 hover:bg-neutral-100 cursor-pointer"
           >
-            Batal
+            Cancel
           </button>
           <button
             type="button"
             onClick={onApply}
             className="px-4 py-1.5 rounded-full text-xs font-bold bg-[#0b57d0] hover:bg-[#0842a0] text-white shadow-sm cursor-pointer"
           >
-            Terapkan
+            Apply
           </button>
         </div>
       </div>

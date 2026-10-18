@@ -31,7 +31,7 @@ export function MailFormattingBar({ editor }: MailFormattingBarProps) {
         onClick={() => editor.chain().focus().undo().run()}
         disabled={!editor.can().undo()}
         className="p-1.5 hover:bg-neutral-200/80 rounded transition-colors disabled:opacity-40"
-        title="Urungkan (Ctrl+Z)"
+        title="Undo (Ctrl+Z)"
       >
         <RotateCcw className="w-3.5 h-3.5" />
       </button>
@@ -40,7 +40,7 @@ export function MailFormattingBar({ editor }: MailFormattingBarProps) {
         onClick={() => editor.chain().focus().redo().run()}
         disabled={!editor.can().redo()}
         className="p-1.5 hover:bg-neutral-200/80 rounded transition-colors disabled:opacity-40"
-        title="Ulangi (Ctrl+Y)"
+        title="Redo (Ctrl+Y)"
       >
         <RotateCw className="w-3.5 h-3.5" />
       </button>
@@ -55,7 +55,7 @@ export function MailFormattingBar({ editor }: MailFormattingBarProps) {
           "p-1.5 hover:bg-neutral-200/80 rounded transition-colors font-bold",
           editor.isActive("bold") && "bg-neutral-200 text-neutral-900 font-extrabold"
         )}
-        title="Tebal (Ctrl+B)"
+        title="Bold (Ctrl+B)"
       >
         <Bold className="w-3.5 h-3.5" />
       </button>
@@ -68,7 +68,7 @@ export function MailFormattingBar({ editor }: MailFormattingBarProps) {
           "p-1.5 hover:bg-neutral-200/80 rounded transition-colors italic",
           editor.isActive("italic") && "bg-neutral-200 text-neutral-900"
         )}
-        title="Miring (Ctrl+I)"
+        title="Italic (Ctrl+I)"
       >
         <Italic className="w-3.5 h-3.5" />
       </button>
@@ -81,7 +81,7 @@ export function MailFormattingBar({ editor }: MailFormattingBarProps) {
           "p-1.5 hover:bg-neutral-200/80 rounded transition-colors underline",
           editor.isActive("underline") && "bg-neutral-200 text-neutral-900"
         )}
-        title="Garis bawah (Ctrl+U)"
+        title="Underline (Ctrl+U)"
       >
         <UnderlineIcon className="w-3.5 h-3.5" />
       </button>
@@ -94,7 +94,7 @@ export function MailFormattingBar({ editor }: MailFormattingBarProps) {
           "p-1.5 hover:bg-neutral-200/80 rounded transition-colors",
           editor.isActive("strike") && "bg-neutral-200 text-neutral-900"
         )}
-        title="Coret"
+        title="Strikethrough"
       >
         <Strikethrough className="w-3.5 h-3.5" />
       </button>
@@ -109,7 +109,7 @@ export function MailFormattingBar({ editor }: MailFormattingBarProps) {
           "p-1.5 hover:bg-neutral-200/80 rounded transition-colors",
           editor.isActive("bulletList") && "bg-neutral-200 text-neutral-900"
         )}
-        title="Daftar bertanda"
+        title="Bulleted list"
       >
         <List className="w-3.5 h-3.5" />
       </button>
@@ -122,7 +122,7 @@ export function MailFormattingBar({ editor }: MailFormattingBarProps) {
           "p-1.5 hover:bg-neutral-200/80 rounded transition-colors",
           editor.isActive("orderedList") && "bg-neutral-200 text-neutral-900"
         )}
-        title="Daftar bernomor"
+        title="Numbered list"
       >
         <ListOrdered className="w-3.5 h-3.5" />
       </button>
@@ -135,7 +135,7 @@ export function MailFormattingBar({ editor }: MailFormattingBarProps) {
           "p-1.5 hover:bg-neutral-200/80 rounded transition-colors",
           editor.isActive("blockquote") && "bg-neutral-200 text-neutral-900"
         )}
-        title="Kutipan"
+        title="Quote"
       >
         <Quote className="w-3.5 h-3.5" />
       </button>
@@ -148,7 +148,7 @@ export function MailFormattingBar({ editor }: MailFormattingBarProps) {
           "p-1.5 hover:bg-neutral-200/80 rounded transition-colors",
           editor.isActive("codeBlock") && "bg-neutral-200 text-neutral-900"
         )}
-        title="Blok kode"
+        title="Code block"
       >
         <Code className="w-3.5 h-3.5" />
       </button>
@@ -158,7 +158,7 @@ export function MailFormattingBar({ editor }: MailFormattingBarProps) {
         type="button"
         onClick={() => editor.chain().focus().unsetAllMarks().clearNodes().run()}
         className="p-1.5 hover:bg-neutral-200/80 rounded transition-colors text-neutral-500 hover:text-neutral-900"
-        title="Hapus format"
+        title="Clear formatting"
       >
         <RemoveFormatting className="w-3.5 h-3.5" />
       </button>

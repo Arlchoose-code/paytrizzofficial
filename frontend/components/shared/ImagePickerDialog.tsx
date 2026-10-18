@@ -161,17 +161,17 @@ export function ImagePickerDialog({
       });
       const json = await res.json().catch(() => null);
       if (res.ok && json?.success !== false) {
-        toast.success(kind === "document" ? "Dokumen berhasil dihapus" : "Gambar berhasil dihapus");
+        toast.success(kind === "document" ? "Document deleted successfully" : "Image deleted successfully");
         setItems((prev) => prev.filter((item) => item.id !== deleteTarget.id));
         if (selected?.id === deleteTarget.id) {
           setSelected(null);
         }
         setDeleteTarget(null);
       } else {
-        toast.error(json?.message || "Gagal menghapus file");
+        toast.error(json?.message || "Failed to delete file");
       }
     } catch {
-      toast.error("Terjadi kesalahan jaringan saat menghapus file");
+      toast.error("Network error while deleting file");
     } finally {
       setDeleting(false);
     }
@@ -336,7 +336,7 @@ export function ImagePickerDialog({
                           setDeleteTarget(m);
                         }}
                         className="absolute top-2 left-2 w-6 h-6 rounded-full bg-red-600/90 hover:bg-red-700 text-white flex items-center justify-center shadow-md transition-opacity cursor-pointer opacity-0 group-hover:opacity-100 focus:opacity-100 z-10"
-                        title="Hapus media ini"
+                        title="Delete this media"
                       >
                         <Trash2 className="w-3 h-3" />
                       </button>
@@ -364,10 +364,10 @@ export function ImagePickerDialog({
                   type="button"
                   onClick={() => setDeleteTarget(selected)}
                   className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold text-red-600 bg-red-50 hover:bg-red-100 border border-red-200 transition cursor-pointer flex-shrink-0"
-                  title="Hapus item yang dipilih"
+                  title="Delete selected item"
                 >
                   <Trash2 className="w-3 h-3" />
-                  <span>Hapus</span>
+                  <span>Delete</span>
                 </button>
               )}
             </div>
@@ -399,14 +399,14 @@ export function ImagePickerDialog({
 
       <ConfirmDialog
         open={deleteTarget !== null}
-        title={kind === "document" ? "Hapus Dokumen?" : "Hapus Gambar?"}
+        title={kind === "document" ? "Delete Document?" : "Delete Image?"}
         description={
           <span>
-            Hapus file <strong className="text-ink-900 font-bold">&ldquo;{deleteTarget?.original_name}&rdquo;</strong> secara permanen dari penyimpanan? Tindakan ini tidak dapat dibatalkan.
+            Permanently delete file <strong className="text-ink-900 font-bold">&ldquo;{deleteTarget?.original_name}&rdquo;</strong> from storage? This action cannot be undone.
           </span>
         }
-        confirmLabel="Hapus Permanen"
-        cancelLabel="Batal"
+        confirmLabel="Delete Permanently"
+        cancelLabel="Cancel"
         danger
         loading={deleting}
         onCancel={() => setDeleteTarget(null)}

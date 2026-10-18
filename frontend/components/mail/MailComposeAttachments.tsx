@@ -39,7 +39,7 @@ export function MailComposeAttachments({
             type="button"
             onClick={() => onRemove(att.id)}
             className="p-0.5 hover:text-red-600 rounded-full transition-colors cursor-pointer shrink-0"
-            title="Hapus lampiran"
+            title="Remove attachment"
           >
             <X className="w-3 h-3" />
           </button>

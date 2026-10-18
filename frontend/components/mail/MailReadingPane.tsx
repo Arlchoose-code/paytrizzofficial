@@ -107,7 +107,7 @@ export function MailReadingPane({
       timeStyle: "short",
     });
     const sender = msg.from_name || msg.from_address;
-    return `<p></p><br/><div class="gmail_quote" style="border-left: 2px solid #ccc; padding-left: 12px; margin-top: 16px; color: #555;">Pada ${dateStr}, ${sender} &lt;${msg.from_address}&gt; menulis:<br/>${msg.body_html || msg.body_text}</div>`;
+    return `<p></p><br/><div class="gmail_quote" style="border-left: 2px solid #ccc; padding-left: 12px; margin-top: 16px; color: #555;">On ${dateStr}, ${sender} &lt;${msg.from_address}&gt; wrote:<br/>${msg.body_html || msg.body_text}</div>`;
   };
 
   const handleReplyMessage = (msg: MessageItem) => {
@@ -138,13 +138,13 @@ export function MailReadingPane({
   const handleForwardMessage = (msg: MessageItem) => {
     if (!onForward) return;
     const subjectPrefix = msg.subject.startsWith("Fwd:") ? msg.subject : `Fwd: ${msg.subject}`;
-    const dateStr = new Date(msg.sort_at).toLocaleString("id-ID", {
+    const dateStr = new Date(msg.sort_at).toLocaleString("en-US", {
       dateStyle: "medium",
       timeStyle: "short",
     });
     const sender = msg.from_name || msg.from_address;
     const recipients = (msg.to_json || []).map((t) => t.address).join(", ");
-    const quoted = `<p></p><br/><div class="gmail_quote" style="border-left: 2px solid #ccc; padding-left: 12px; margin-top: 16px; color: #555;">---------- Pesan yang diteruskan ---------<br/>Dari: <b>${sender}</b> &lt;${msg.from_address}&gt;<br/>Tanggal: ${dateStr}<br/>Subjek: ${msg.subject}<br/>Kepada: ${recipients}<br/><br/>${msg.body_html || msg.body_text}</div>`;
+    const quoted = `<p></p><br/><div class="gmail_quote" style="border-left: 2px solid #ccc; padding-left: 12px; margin-top: 16px; color: #555;">---------- Forwarded message ---------<br/>From: <b>${sender}</b> &lt;${msg.from_address}&gt;<br/>Date: ${dateStr}<br/>Subject: ${msg.subject}<br/>To: ${recipients}<br/><br/>${msg.body_html || msg.body_text}</div>`;
     onForward(subjectPrefix, quoted, msg.attachments || []);
   };
 
@@ -154,9 +154,9 @@ export function MailReadingPane({
         <div className="w-16 h-16 rounded-full bg-brand-50 flex items-center justify-center text-brand-600 mb-4">
           <Mail className="w-8 h-8" />
         </div>
-        <h3 className="text-base font-bold text-ink-900">Pilih email untuk melihat</h3>
+        <h3 className="text-base font-bold text-ink-900">Select an email to read</h3>
         <p className="text-xs text-ink-500 max-w-sm mt-1">
-          Pilih pesan masuk atau utas percakapan dari daftar di sebelah kiri untuk melihat riwayat dan membalas.
+          Choose an email or conversation thread from the list on the left to read history and reply.
         </p>
       </div>
     );
@@ -184,7 +184,7 @@ export function MailReadingPane({
           <div className="p-3 rounded-xl bg-red-50 border border-red-200 text-danger text-xs flex items-center gap-2">
             <AlertTriangle className="w-4 h-4 shrink-0" />
             <span>
-              Pesan ini tidak dapat dikirim ke penerima. {selectedMessage.delivery_detail || "Bounced by remote mail server."}
+              This message could not be delivered to the recipient. {selectedMessage.delivery_detail || "Bounced by remote mail server."}
             </span>
           </div>
         )}
@@ -198,15 +198,15 @@ export function MailReadingPane({
               {threadMessages.length > 1 && (
                 <div className="flex items-center gap-1.5">
                   <span className="px-2 py-0.5 rounded-full bg-brand-100 text-brand-900 font-bold text-[10px]">
-                    {threadMessages.length} pesan
+                    {threadMessages.length} messages
                   </span>
                   <button
                     type="button"
                     onClick={handleToggleExpandAll}
                     className="text-[11px] font-medium text-ink-500 hover:text-ink-900 px-2 py-0.5 rounded-md hover:bg-ink-100 transition cursor-pointer select-none"
-                    title={isAllExpanded ? "Ciutkan semua pesan lama" : "Bentangkan semua pesan"}
+                    title={isAllExpanded ? "Collapse all messages" : "Expand all messages"}
                   >
-                    {isAllExpanded ? "Ciutkan semua" : "Bentangkan semua"}
+                    {isAllExpanded ? "Collapse all" : "Expand all"}
                   </button>
                 </div>
               )}

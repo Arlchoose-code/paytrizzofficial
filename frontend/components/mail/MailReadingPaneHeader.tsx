@@ -61,7 +61,7 @@ export function MailReadingPaneHeader({
                   type="button"
                   onClick={onReply}
                   className="px-3 py-1.5 rounded-full text-xs font-semibold bg-white border border-ink-200 text-ink-700 hover:bg-ink-100 flex items-center gap-1.5 shadow-sm cursor-pointer"
-                  title="Balas pesan ini"
+                  title="Reply to this message"
                 >
                   <CornerUpLeft className="w-3.5 h-3.5" />
                   Reply
@@ -70,7 +70,7 @@ export function MailReadingPaneHeader({
                   type="button"
                   onClick={onForward}
                   className="px-3 py-1.5 rounded-full text-xs font-semibold bg-white border border-ink-200 text-ink-700 hover:bg-ink-100 flex items-center gap-1.5 shadow-sm cursor-pointer"
-                  title="Teruskan pesan ini"
+                  title="Forward this message"
                 >
                   <CornerUpRight className="w-3.5 h-3.5" />
                   Forward

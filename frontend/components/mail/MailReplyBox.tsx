@@ -62,7 +62,7 @@ export function MailReplyBox({
         </div>
       )}
 
-      {/* Gmail-style Action Buttons (Balas, Balas Semua, Teruskan, Reaksi) */}
+      {/* Gmail-style Action Buttons (Reply, Reply All, Forward, Reactions) */}
       <div className="flex items-center gap-2.5 relative flex-wrap">
         <button
           type="button"
@@ -70,7 +70,7 @@ export function MailReplyBox({
           className="inline-flex items-center gap-2 px-5 py-2 rounded-full border border-neutral-300 hover:bg-neutral-100 text-neutral-800 font-semibold text-xs shadow-2xs transition-colors cursor-pointer bg-white"
         >
           <CornerUpLeft className="w-3.5 h-3.5 text-neutral-600" />
-          <span>Balas</span>
+          <span>Reply</span>
         </button>
 
         {hasMultipleRecipients && (
@@ -80,7 +80,7 @@ export function MailReplyBox({
             className="inline-flex items-center gap-2 px-5 py-2 rounded-full border border-neutral-300 hover:bg-neutral-100 text-neutral-800 font-semibold text-xs shadow-2xs transition-colors cursor-pointer bg-white"
           >
             <CornerUpLeft className="w-3.5 h-3.5 text-neutral-600" />
-            <span>Balas Semua</span>
+            <span>Reply All</span>
           </button>
         )}
 
@@ -90,7 +90,7 @@ export function MailReplyBox({
           className="inline-flex items-center gap-2 px-5 py-2 rounded-full border border-neutral-300 hover:bg-neutral-100 text-neutral-800 font-semibold text-xs shadow-2xs transition-colors cursor-pointer bg-white"
         >
           <CornerUpRight className="w-3.5 h-3.5 text-neutral-600" />
-          <span>Teruskan</span>
+          <span>Forward</span>
         </button>
 
         {/* Emoji Reaction Popover */}
@@ -102,7 +102,7 @@ export function MailReplyBox({
               "p-2 rounded-full border border-neutral-300 hover:bg-neutral-100 text-neutral-600 transition-colors cursor-pointer bg-white",
               showReactionPicker && "bg-neutral-100 text-neutral-900 border-neutral-400"
             )}
-            title="Tambahkan reaksi emoji"
+            title="Add emoji reaction"
           >
             <Smile className="w-4 h-4" />
           </button>
@@ -118,7 +118,7 @@ export function MailReplyBox({
                       setReactions((prev) => [...prev, em]);
                     }
                     setShowReactionPicker(false);
-                    toast.success(`Reaksi ${em} ditambahkan!`);
+                    toast.success(`Reaction ${em} added!`);
                   }}
                   className="p-1.5 hover:bg-neutral-100 rounded-xl text-base transition-transform hover:scale-125 cursor-pointer"
                 >
@@ -135,16 +135,16 @@ export function MailReplyBox({
         <div className="flex items-center justify-between text-xs font-semibold text-ink-600 mb-1.5">
           <span className="flex items-center gap-1.5">
             <CornerUpLeft className="w-3 h-3" />
-            Respon Cepat ke {senderName}
+            Quick Reply to {senderName}
           </span>
           <span className="text-[11px] text-ink-400 font-normal">
-            Kirim langsung (dengan jendela urungkan 8 detik)
+            Direct send (with 8s undo window)
           </span>
         </div>
         <div className="flex gap-2">
           <textarea
             rows={2}
-            placeholder="Tulis balasan cepat Anda..."
+            placeholder="Write a quick reply..."
             value={inlineReplyText}
             onChange={(e) => setInlineReplyText(e.target.value)}
             className="flex-1 p-2.5 rounded-xl border border-ink-200 bg-white text-xs text-ink-900 focus:outline-none focus:ring-2 focus:ring-brand-500"
@@ -154,7 +154,7 @@ export function MailReplyBox({
             disabled={replySending || !inlineReplyText.trim()}
             className="px-5 rounded-xl font-bold text-xs bg-brand-500 hover:bg-brand-400 text-ink-900 disabled:opacity-50 transition-all flex items-center justify-center gap-1.5 shadow-sm cursor-pointer shrink-0"
           >
-            {replySending ? "Mengirim..." : "Kirim"}
+            {replySending ? "Sending..." : "Send"}
           </button>
         </div>
       </div>

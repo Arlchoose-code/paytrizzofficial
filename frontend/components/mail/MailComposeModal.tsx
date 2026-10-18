@@ -235,10 +235,10 @@ export function MailComposeModal({
     if (draftId) {
       try {
         await fetch(`/api/proxy/mail/messages/${draftId}`, { method: "DELETE" });
-        toast.info("Draf dibuang");
+        toast.info("Draft discarded");
       } catch {}
     } else {
-      toast.info("Draf dibuang");
+      toast.info("Draft discarded");
     }
     onClose();
   };
@@ -249,7 +249,7 @@ export function MailComposeModal({
     const finalBcc = parseFinalAddresses(bccChips, bccInput);
 
     if (!asDraft && finalTo.length === 0) {
-      toast.error("Silakan tentukan minimal satu penerima (To)");
+      toast.error("Please specify at least one recipient (To)");
       return;
     }
 
@@ -294,27 +294,27 @@ export function MailComposeModal({
       if (!res.ok) throw new Error(json.message || "Failed to process message");
 
       if (asDraft) {
-        toast.info("Draf disimpan");
+        toast.info("Draft saved");
         if (json.data?.id) setDraftId(json.data.id);
         onClose();
       } else if (payload.scheduled_at) {
-        toast.success("Pesan dijadwalkan!", {
-          description: `Akan dikirim otomatis pada ${new Date(scheduledDate).toLocaleString("id-ID")}`,
+        toast.success("Message scheduled!", {
+          description: `Scheduled to send automatically on ${new Date(scheduledDate).toLocaleString("en-US")}`,
         });
         onClose();
         onSent(json.data.id, false);
       } else {
-        toast.success("Pesan terkirim", {
-          description: "Tersedia pembatalan pengiriman (Urungkan) selama 8 detik.",
+        toast.success("Message sent", {
+          description: "Undo sending available for 8 seconds.",
           action: {
-            label: "Urungkan",
+            label: "Undo",
             onClick: async () => {
               try {
                 const undoRes = await fetch(`/api/proxy/mail/messages/${json.data.id}/undo`, {
                   method: "POST",
                 });
                 if (undoRes.ok) {
-                  toast.info("Pengiriman dibatalkan. Pesan kembali ke Draf.");
+                  toast.info("Sending cancelled. Message restored to Drafts.");
                 }
               } catch {}
             },
@@ -324,7 +324,7 @@ export function MailComposeModal({
         onSent(json.data.id, true);
       }
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : "Gagal memproses pesan";
+      const msg = err instanceof Error ? err.message : "Failed to process message";
       toast.error(msg);
     } finally {
       setSending(false);
@@ -350,17 +350,17 @@ export function MailComposeModal({
           : "fixed inset-x-0 bottom-0 sm:inset-x-auto sm:right-8 sm:w-[580px] h-[85vh] sm:h-[570px] max-h-[100vh] sm:max-h-[90vh] rounded-t-2xl shadow-2xl"
       )}
     >
-      {/* 1. Header (Pesan Baru with minimize, expand, close) */}
+      {/* 1. Header (New Message with minimize, expand, close) */}
       <div className="px-4 py-2.5 bg-[#f2f6fc] border-b border-neutral-200 flex items-center justify-between select-none">
         <span className="text-xs font-semibold text-neutral-800 truncate mr-2">
-          {subject ? subject : "Pesan Baru"}
+          {subject ? subject : "New Message"}
         </span>
         <div className="flex items-center gap-1 text-neutral-600">
           <button
             type="button"
             onClick={() => setWindowMode("minimized")}
             className="p-1.5 hover:bg-neutral-200/70 rounded-md transition-colors text-neutral-600 hover:text-neutral-900 cursor-pointer"
-            title="Minimalkan"
+            title="Minimize"
           >
             <Minus className="w-3.5 h-3.5" />
           </button>
@@ -368,7 +368,7 @@ export function MailComposeModal({
             type="button"
             onClick={() => setWindowMode(windowMode === "expanded" ? "dock" : "expanded")}
             className="p-1.5 hover:bg-neutral-200/70 rounded-md transition-colors text-neutral-600 hover:text-neutral-900 cursor-pointer"
-            title={windowMode === "expanded" ? "Keluar layar penuh" : "Layar penuh"}
+            title={windowMode === "expanded" ? "Exit full screen" : "Full screen"}
           >
             {windowMode === "expanded" ? (
               <Minimize2 className="w-3.5 h-3.5" />
@@ -380,7 +380,7 @@ export function MailComposeModal({
             type="button"
             onClick={onClose}
             className="p-1.5 hover:bg-neutral-200/70 rounded-md transition-colors text-neutral-600 hover:text-neutral-900 cursor-pointer"
-            title="Simpan dan tutup"
+            title="Save and close"
           >
             <X className="w-3.5 h-3.5" />
           </button>
@@ -391,7 +391,7 @@ export function MailComposeModal({
       <div className="flex-1 flex flex-col overflow-y-auto">
         {mailboxes.length > 1 && (
           <div className="flex items-center px-4 py-1.5 border-b border-neutral-100 text-xs">
-            <span className="text-neutral-500 w-16 font-medium">Dari</span>
+            <span className="text-neutral-500 w-16 font-medium">From</span>
             <select
               value={selectedMailboxId}
               onChange={(e) => setSelectedMailboxId(Number(e.target.value))}
@@ -437,7 +437,7 @@ export function MailComposeModal({
             type="text"
             value={subject}
             onChange={(e) => setSubject(e.target.value)}
-            placeholder="Subjek"
+            placeholder="Subject"
             className="w-full text-xs font-medium text-neutral-900 outline-none bg-transparent py-0.5 placeholder:text-neutral-400"
           />
         </div>
@@ -447,7 +447,7 @@ export function MailComposeModal({
           <div className="px-4 py-2 bg-blue-50 border-b border-blue-200 flex items-center justify-between text-xs text-blue-900">
             <div className="flex items-center gap-2">
               <Clock className="w-3.5 h-3.5 text-blue-600 shrink-0" />
-              <span>Kirim terjadwal:</span>
+              <span>Scheduled send:</span>
               <input
                 type="datetime-local"
                 value={scheduledDate}
@@ -460,7 +460,7 @@ export function MailComposeModal({
               onClick={() => setIsScheduled(false)}
               className="text-xs text-blue-700 hover:underline font-medium cursor-pointer"
             >
-              Batalkan
+              Cancel
             </button>
           </div>
         )}

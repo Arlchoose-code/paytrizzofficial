@@ -40,7 +40,7 @@ export function MailThreadItem({
   const senderName = message.from_name || message.from_address.split("@")[0] || "Unknown";
   const senderInitial = (senderName || message.from_address || "U").charAt(0).toUpperCase();
 
-  const formattedDate = new Date(message.sort_at).toLocaleString("id-ID", {
+  const formattedDate = new Date(message.sort_at).toLocaleString("en-US", {
     dateStyle: "medium",
     timeStyle: "short",
   });
@@ -163,7 +163,7 @@ export function MailThreadItem({
             type="button"
             onClick={onToggleExpand}
             className="p-1 rounded-lg text-ink-400 hover:text-ink-700 hover:bg-ink-100 transition cursor-pointer"
-            title="Ciutkan pesan"
+            title="Collapse message"
           >
             <ChevronUp className="w-4 h-4" />
           </button>
@@ -175,14 +175,14 @@ export function MailThreadItem({
         <div className="p-2.5 rounded-xl bg-brand-50 border border-brand-200 text-ink-900 text-xs flex items-center justify-between">
           <div className="flex items-center gap-2">
             <ImageIcon className="w-4 h-4 text-ink-700" />
-            <span>Gambar eksternal diblokir untuk privasi.</span>
+            <span>External images are blocked for privacy.</span>
           </div>
           <button
             type="button"
             onClick={onShowImages}
             className="px-3 py-1 rounded-full bg-brand-500 text-ink-900 font-bold text-[11px] hover:bg-brand-400 transition cursor-pointer"
           >
-            Tampilkan gambar
+            Show images
           </button>
         </div>
       )}
@@ -221,7 +221,7 @@ export function MailThreadItem({
             type="button"
             onClick={() => setShowQuote(!showQuote)}
             className="inline-flex items-center gap-1 px-2 py-0.5 mt-2 rounded bg-neutral-200/80 hover:bg-neutral-300 text-neutral-600 font-bold text-[11px] transition-colors cursor-pointer select-none"
-            title={showQuote ? "Sembunyikan teks kutipan" : "Tampilkan teks yang dipotong"}
+            title={showQuote ? "Hide quoted text" : "Show trimmed content"}
           >
             <span>···</span>
           </button>
@@ -233,7 +233,7 @@ export function MailThreadItem({
         <div className="pt-3 border-t border-ink-100">
           <h4 className="text-[11px] font-bold text-ink-900 mb-2 flex items-center gap-1.5">
             <Paperclip className="w-3 h-3 text-neutral-600" />
-            Lampiran ({message.attachments.length})
+            Attachments ({message.attachments.length})
           </h4>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
             {message.attachments.map((att) => {
@@ -268,7 +268,7 @@ export function MailThreadItem({
                     target="_blank"
                     rel="noreferrer"
                     className="p-1.5 text-ink-600 hover:text-ink-900 hover:bg-ink-100 rounded-lg transition-colors shrink-0 cursor-pointer"
-                    title={`Unduh ${name}`}
+                    title={`Download ${name}`}
                   >
                     <Download className="w-3.5 h-3.5" />
                   </a>
@@ -288,7 +288,7 @@ export function MailThreadItem({
             className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-neutral-200 hover:bg-neutral-100 text-neutral-700 font-medium text-xs transition cursor-pointer"
           >
             <CornerUpLeft className="w-3 h-3 text-neutral-500" />
-            <span>Balas pesan ini</span>
+            <span>Reply to this message</span>
           </button>
           <button
             type="button"
@@ -296,7 +296,7 @@ export function MailThreadItem({
             className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-neutral-200 hover:bg-neutral-100 text-neutral-700 font-medium text-xs transition cursor-pointer"
           >
             <CornerUpRight className="w-3 h-3 text-neutral-500" />
-            <span>Teruskan</span>
+            <span>Forward</span>
           </button>
         </div>
       )}
