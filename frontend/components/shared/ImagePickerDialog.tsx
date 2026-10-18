@@ -1,9 +1,10 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Upload, Image as ImageIcon, X, RefreshCw, Check, FileText } from "lucide-react";
+import { Upload, Image as ImageIcon, X, RefreshCw, Check, FileText, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
 
 export interface PickedMedia {
   id: number;
@@ -50,6 +51,8 @@ export function ImagePickerDialog({
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [selected, setSelected] = useState<PickedMedia | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<PickedMedia | null>(null);
+  const [deleting, setDeleting] = useState(false);
   const [prevOpen, setPrevOpen] = useState(open);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -149,193 +152,266 @@ export function ImagePickerDialog({
     }
   };
 
+  const handleConfirmDelete = async () => {
+    if (!deleteTarget) return;
+    setDeleting(true);
+    try {
+      const res = await fetch(`${resolvedApiBase}/${deleteTarget.id}`, {
+        method: "DELETE",
+      });
+      const json = await res.json().catch(() => null);
+      if (res.ok && json?.success !== false) {
+        toast.success(kind === "document" ? "Dokumen berhasil dihapus" : "Gambar berhasil dihapus");
+        setItems((prev) => prev.filter((item) => item.id !== deleteTarget.id));
+        if (selected?.id === deleteTarget.id) {
+          setSelected(null);
+        }
+        setDeleteTarget(null);
+      } else {
+        toast.error(json?.message || "Gagal menghapus file");
+      }
+    } catch {
+      toast.error("Terjadi kesalahan jaringan saat menghapus file");
+    } finally {
+      setDeleting(false);
+    }
+  };
+
   if (!open) return null;
 
   const previewOf = (m: PickedMedia) => m.path_thumb || m.path_medium || m.path_original;
 
   return (
-    <div className="fixed inset-0 z-[70] flex items-center justify-center p-4">
-      <div className="fixed inset-0 bg-ink-900/60 backdrop-blur-sm" onClick={onClose} />
-      <div className="relative bg-white rounded-3xl w-full max-w-3xl max-h-[88vh] shadow-2xl flex flex-col overflow-hidden">
-        {/* Header */}
-        <div className="p-5 border-b border-ink-100 flex items-center justify-between flex-shrink-0">
-          <h3 className="text-base font-extrabold text-ink-900">{title}</h3>
-          <button onClick={onClose} className="p-1.5 rounded-lg text-ink-400 hover:text-ink-900 cursor-pointer">
-            <X className="w-5 h-5" />
-          </button>
-        </div>
+    <>
+      <div className="fixed inset-0 z-[70] flex items-center justify-center p-4">
+        <div className="fixed inset-0 bg-ink-900/60 backdrop-blur-sm" onClick={onClose} />
+        <div className="relative bg-white rounded-3xl w-full max-w-3xl max-h-[88vh] shadow-2xl flex flex-col overflow-hidden">
+          {/* Header */}
+          <div className="p-5 border-b border-ink-100 flex items-center justify-between flex-shrink-0">
+            <h3 className="text-base font-extrabold text-ink-900">{title}</h3>
+            <button onClick={onClose} className="p-1.5 rounded-lg text-ink-400 hover:text-ink-900 cursor-pointer">
+              <X className="w-5 h-5" />
+            </button>
+          </div>
 
-        {/* Tabs */}
-        <div className="px-5 pt-4 flex items-center gap-1.5 p-1 flex-shrink-0">
-          {(
-            [
-              { id: "library", label: "Library", icon: ImageIcon },
-              { id: "upload", label: "Upload", icon: Upload },
-            ] as const
-          ).map((t) => {
-            const Icon = t.icon;
-            return (
-              <button
-                key={t.id}
-                onClick={() => setTab(t.id)}
-                className={cn(
-                  "px-4 py-2 rounded-xl text-xs font-bold transition cursor-pointer flex items-center gap-2",
-                  tab === t.id ? "bg-brand-500 text-ink-900 shadow-sm" : "text-ink-600 hover:text-ink-900"
-                )}
-              >
-                <Icon className="w-3.5 h-3.5" />
-                {t.label}
-              </button>
-            );
-          })}
-          <button
-            onClick={fetchLibrary}
-            className="ml-auto p-2 rounded-lg text-ink-500 hover:bg-ink-100 transition cursor-pointer"
-            title="Refresh library"
-          >
-            <RefreshCw className={cn("w-4 h-4", loading && "animate-spin")} />
-          </button>
-        </div>
-
-        {/* Body */}
-        <div className="flex-1 overflow-y-auto p-5">
-          {tab === "upload" ? (
-            <div
-              onClick={() => fileInputRef.current?.click()}
-              className="border-2 border-dashed border-ink-300 hover:border-brand-500 rounded-3xl p-12 text-center cursor-pointer transition"
-            >
-              <input
-                type="file"
-                ref={fileInputRef}
-                accept={kind === "document" ? ".pdf,application/pdf" : "image/*"}
-                onChange={handleUpload}
-                className="hidden"
-              />
-              {uploading ? (
-                <>
-                  <RefreshCw className="w-8 h-8 animate-spin mx-auto text-brand-500 mb-3" />
-                  <p className="text-sm font-bold text-ink-900">
-                    {kind === "document" ? "Uploading document..." : "Uploading & converting to WebP..."}
-                  </p>
-                </>
-              ) : (
-                <>
-                  {kind === "document" ? (
-                    <FileText className="w-8 h-8 mx-auto text-ink-400 mb-3" />
-                  ) : (
-                    <Upload className="w-8 h-8 mx-auto text-ink-400 mb-3" />
+          {/* Tabs */}
+          <div className="px-5 pt-4 flex items-center gap-1.5 p-1 flex-shrink-0">
+            {(
+              [
+                { id: "library", label: "Library", icon: ImageIcon },
+                { id: "upload", label: "Upload", icon: Upload },
+              ] as const
+            ).map((t) => {
+              const Icon = t.icon;
+              return (
+                <button
+                  key={t.id}
+                  onClick={() => setTab(t.id)}
+                  className={cn(
+                    "px-4 py-2 rounded-xl text-xs font-bold transition cursor-pointer flex items-center gap-2",
+                    tab === t.id ? "bg-brand-500 text-ink-900 shadow-sm" : "text-ink-600 hover:text-ink-900"
                   )}
-                  <p className="text-sm font-bold text-ink-900">
-                    {kind === "document" ? "Click to upload a PDF document" : "Click to upload an image"}
-                  </p>
-                  <p className="text-xs text-ink-500 mt-1">
-                    {kind === "document"
-                      ? `PDF document (max 5 MB). Stored in module "${module}".`
-                      : `PNG, JPG, WebP or GIF — converted automatically. Stored in module "${module}".`}
-                  </p>
-                </>
-              )}
-            </div>
-          ) : loading ? (
-            <div className="py-16 text-center text-xs text-ink-400">
-              <RefreshCw className="w-6 h-6 animate-spin mx-auto mb-2 text-brand-500" />
-              Loading library...
-            </div>
-          ) : items.length === 0 ? (
-            <div className="py-16 text-center">
-              {kind === "document" ? (
-                <FileText className="w-10 h-10 text-ink-300 mx-auto mb-3" />
-              ) : (
-                <ImageIcon className="w-10 h-10 text-ink-300 mx-auto mb-3" />
-              )}
-              <p className="text-sm font-bold text-ink-700">
-                {kind === "document" ? "No documents in library" : "No images in library"}
-              </p>
-              <p className="text-xs text-ink-400 mt-1">Switch to the Upload tab to add one.</p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
-              {items.map((m) => {
-                const isSelected = selected?.id === m.id;
-                const isDocument =
-                  m.kind === "document" ||
-                  m.mime === "application/pdf" ||
-                  m.original_name?.endsWith(".pdf");
-                return (
-                  <button
-                    key={m.id}
-                    onClick={() => setSelected(m)}
-                    className={cn(
-                      "relative aspect-square rounded-2xl overflow-hidden border-2 transition cursor-pointer group flex flex-col items-center justify-center text-center p-2",
-                      isSelected
-                        ? "border-brand-500 ring-2 ring-brand-500/40 bg-brand-50/40"
-                        : "border-neutral-200 hover:border-ink-300 bg-neutral-50"
+                >
+                  <Icon className="w-3.5 h-3.5" />
+                  {t.label}
+                </button>
+              );
+            })}
+            <button
+              onClick={fetchLibrary}
+              className="ml-auto p-2 rounded-lg text-ink-500 hover:bg-ink-100 transition cursor-pointer"
+              title="Refresh library"
+            >
+              <RefreshCw className={cn("w-4 h-4", loading && "animate-spin")} />
+            </button>
+          </div>
+
+          {/* Body */}
+          <div className="flex-1 overflow-y-auto p-5">
+            {tab === "upload" ? (
+              <div
+                onClick={() => fileInputRef.current?.click()}
+                className="border-2 border-dashed border-ink-300 hover:border-brand-500 rounded-3xl p-12 text-center cursor-pointer transition"
+              >
+                <input
+                  type="file"
+                  ref={fileInputRef}
+                  accept={kind === "document" ? ".pdf,application/pdf" : "image/*"}
+                  onChange={handleUpload}
+                  className="hidden"
+                />
+                {uploading ? (
+                  <>
+                    <RefreshCw className="w-8 h-8 animate-spin mx-auto text-brand-500 mb-3" />
+                    <p className="text-sm font-bold text-ink-900">
+                      {kind === "document" ? "Uploading document..." : "Uploading & converting to WebP..."}
+                    </p>
+                  </>
+                ) : (
+                  <>
+                    {kind === "document" ? (
+                      <FileText className="w-8 h-8 mx-auto text-ink-400 mb-3" />
+                    ) : (
+                      <Upload className="w-8 h-8 mx-auto text-ink-400 mb-3" />
                     )}
-                  >
-                    {isDocument ? (
-                      <div className="flex flex-col items-center justify-center p-2 w-full">
-                        <FileText className="w-8 h-8 text-brand-600 mb-1" />
-                        <span className="text-[10px] font-bold text-ink-900 truncate max-w-full px-1">
+                    <p className="text-sm font-bold text-ink-900">
+                      {kind === "document" ? "Click to upload a PDF document" : "Click to upload an image"}
+                    </p>
+                    <p className="text-xs text-ink-500 mt-1">
+                      {kind === "document"
+                        ? `PDF document (max 5 MB). Stored in module "${module}".`
+                        : `PNG, JPG, WebP or GIF — converted automatically. Stored in module "${module}".`}
+                    </p>
+                  </>
+                )}
+              </div>
+            ) : loading ? (
+              <div className="py-16 text-center text-xs text-ink-400">
+                <RefreshCw className="w-6 h-6 animate-spin mx-auto mb-2 text-brand-500" />
+                Loading library...
+              </div>
+            ) : items.length === 0 ? (
+              <div className="py-16 text-center">
+                {kind === "document" ? (
+                  <FileText className="w-10 h-10 text-ink-300 mx-auto mb-3" />
+                ) : (
+                  <ImageIcon className="w-10 h-10 text-ink-300 mx-auto mb-3" />
+                )}
+                <p className="text-sm font-bold text-ink-700">
+                  {kind === "document" ? "No documents in library" : "No images in library"}
+                </p>
+                <p className="text-xs text-ink-400 mt-1">Switch to the Upload tab to add one.</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
+                {items.map((m) => {
+                  const isSelected = selected?.id === m.id;
+                  const isDocument =
+                    m.kind === "document" ||
+                    m.mime === "application/pdf" ||
+                    m.original_name?.endsWith(".pdf");
+                  return (
+                    <div key={m.id} className="relative group">
+                      <button
+                        type="button"
+                        onClick={() => setSelected(m)}
+                        className={cn(
+                          "relative w-full aspect-square rounded-2xl overflow-hidden border-2 transition cursor-pointer flex flex-col items-center justify-center text-center p-2",
+                          isSelected
+                            ? "border-brand-500 ring-2 ring-brand-500/40 bg-brand-50/40"
+                            : "border-neutral-200 hover:border-ink-300 bg-neutral-50"
+                        )}
+                      >
+                        {isDocument ? (
+                          <div className="flex flex-col items-center justify-center p-2 w-full">
+                            <FileText className="w-8 h-8 text-brand-600 mb-1" />
+                            <span className="text-[10px] font-bold text-ink-900 truncate max-w-full px-1">
+                              {m.original_name}
+                            </span>
+                            <span className="text-[9px] text-ink-400 uppercase font-mono mt-0.5">PDF</span>
+                          </div>
+                        ) : (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img
+                            src={previewOf(m)}
+                            alt={m.alt_text || m.original_name}
+                            className="w-full h-full object-cover"
+                          />
+                        )}
+                        {isSelected && (
+                          <span className="absolute top-2 right-2 w-6 h-6 rounded-full bg-brand-500 text-ink-900 flex items-center justify-center shadow-xs">
+                            <Check className="w-3.5 h-3.5" />
+                          </span>
+                        )}
+                        <span className="absolute bottom-0 inset-x-0 px-2 py-1 bg-ink-900/70 text-white text-[9px] font-semibold truncate opacity-0 group-hover:opacity-100 transition">
                           {m.original_name}
                         </span>
-                        <span className="text-[9px] text-ink-400 uppercase font-mono mt-0.5">PDF</span>
-                      </div>
-                    ) : (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img
-                        src={previewOf(m)}
-                        alt={m.alt_text || m.original_name}
-                        className="w-full h-full object-cover"
-                      />
-                    )}
-                    {isSelected && (
-                      <span className="absolute top-2 right-2 w-6 h-6 rounded-full bg-brand-500 text-ink-900 flex items-center justify-center shadow-xs">
-                        <Check className="w-3.5 h-3.5" />
-                      </span>
-                    )}
-                    <span className="absolute bottom-0 inset-x-0 px-2 py-1 bg-ink-900/70 text-white text-[9px] font-semibold truncate opacity-0 group-hover:opacity-100 transition">
-                      {m.original_name}
-                    </span>
-                  </button>
-                );
-              })}
-            </div>
-          )}
-        </div>
+                      </button>
 
-        {/* Footer */}
-        <div className="p-5 border-t border-ink-100 flex items-center justify-between flex-shrink-0 gap-4">
-          <p className="text-[11px] text-ink-500 truncate">
-            {selected ? (
-              <>
-                Selected: <span className="font-bold text-ink-900">{selected.original_name}</span>
-              </>
-            ) : (
-              "Select an image to continue"
+                      {/* Delete button on card */}
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setDeleteTarget(m);
+                        }}
+                        className="absolute top-2 left-2 w-6 h-6 rounded-full bg-red-600/90 hover:bg-red-700 text-white flex items-center justify-center shadow-md transition-opacity cursor-pointer opacity-0 group-hover:opacity-100 focus:opacity-100 z-10"
+                        title="Hapus media ini"
+                      >
+                        <Trash2 className="w-3 h-3" />
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
             )}
-          </p>
-          <div className="flex items-center gap-3 flex-shrink-0">
-            <button
-              onClick={onClose}
-              className="px-5 py-2.5 rounded-full border border-ink-200 text-ink-700 font-bold text-xs hover:bg-ink-100 transition cursor-pointer"
-            >
-              Cancel
-            </button>
-            <button
-              disabled={!selected}
-              onClick={() => {
-                if (selected) {
-                  onSelect(selected);
-                  onClose();
-                }
-              }}
-              className="px-6 py-2.5 rounded-full bg-brand-500 hover:bg-brand-600 text-ink-900 font-bold text-xs transition cursor-pointer disabled:opacity-50"
-            >
-              Use This Image
-            </button>
+          </div>
+
+          {/* Footer */}
+          <div className="p-5 border-t border-ink-100 flex items-center justify-between flex-shrink-0 gap-4">
+            <div className="flex items-center gap-3 min-w-0">
+              <p className="text-[11px] text-ink-500 truncate">
+                {selected ? (
+                  <>
+                    Selected: <span className="font-bold text-ink-900">{selected.original_name}</span>
+                  </>
+                ) : (
+                  "Select an image to continue"
+                )}
+              </p>
+              {selected && (
+                <button
+                  type="button"
+                  onClick={() => setDeleteTarget(selected)}
+                  className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold text-red-600 bg-red-50 hover:bg-red-100 border border-red-200 transition cursor-pointer flex-shrink-0"
+                  title="Hapus item yang dipilih"
+                >
+                  <Trash2 className="w-3 h-3" />
+                  <span>Hapus</span>
+                </button>
+              )}
+            </div>
+            <div className="flex items-center gap-3 flex-shrink-0">
+              <button
+                type="button"
+                onClick={onClose}
+                className="px-5 py-2.5 rounded-full border border-ink-200 text-ink-700 font-bold text-xs hover:bg-ink-100 transition cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                disabled={!selected}
+                onClick={() => {
+                  if (selected) {
+                    onSelect(selected);
+                    onClose();
+                  }
+                }}
+                className="px-6 py-2.5 rounded-full bg-brand-500 hover:bg-brand-600 text-ink-900 font-bold text-xs transition cursor-pointer disabled:opacity-50"
+              >
+                Use This Image
+              </button>
+            </div>
           </div>
         </div>
       </div>
-    </div>
+
+      <ConfirmDialog
+        open={deleteTarget !== null}
+        title={kind === "document" ? "Hapus Dokumen?" : "Hapus Gambar?"}
+        description={
+          <span>
+            Hapus file <strong className="text-ink-900 font-bold">&ldquo;{deleteTarget?.original_name}&rdquo;</strong> secara permanen dari penyimpanan? Tindakan ini tidak dapat dibatalkan.
+          </span>
+        }
+        confirmLabel="Hapus Permanen"
+        cancelLabel="Batal"
+        danger
+        loading={deleting}
+        onCancel={() => setDeleteTarget(null)}
+        onConfirm={handleConfirmDelete}
+      />
+    </>
   );
 }

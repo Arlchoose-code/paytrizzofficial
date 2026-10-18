@@ -38,6 +38,7 @@ func RegisterTalentRoutes(
 		// Media Library & Upload for Talent
 		talentGroup.GET("/media", mediaCtrl.Index)
 		talentGroup.POST("/media", mediaCtrl.Store)
+		talentGroup.DELETE("/media/:id", mediaCtrl.Destroy)
 
 		// Messages
 		messages := talentGroup.Group("/messages")
