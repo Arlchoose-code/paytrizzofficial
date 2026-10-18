@@ -40,7 +40,7 @@ export async function POST(
       headers: {
         "Content-Type": "application/json",
         Cookie: cookieHeader,
-        "X-CSRF-Token": req.headers.get("X-CSRF-Token") || "",
+        "X-CSRF-Token": req.headers.get("X-CSRF-Token") || req.cookies.get("csrf_token")?.value || "",
         "User-Agent": req.headers.get("User-Agent") || "",
         "X-Forwarded-For": req.headers.get("X-Forwarded-For") || "",
       },

@@ -50,10 +50,12 @@ async function forwardRequest(req: NextRequest, pathParts: string[]) {
   const targetUrl = `${BACKEND_URL}/${endpoint}${url.search}`;
   const cookieHeader = req.headers.get("cookie") || "";
 
+  const csrfToken = req.headers.get("X-CSRF-Token") || req.cookies.get("csrf_token")?.value || "";
+
   const headers: Record<string, string> = {
     Cookie: cookieHeader,
     Authorization: req.headers.get("Authorization") || "",
-    "X-CSRF-Token": req.headers.get("X-CSRF-Token") || "",
+    "X-CSRF-Token": csrfToken,
     "User-Agent": req.headers.get("User-Agent") || "",
     "X-Forwarded-For": req.headers.get("X-Forwarded-For") || "",
   };
