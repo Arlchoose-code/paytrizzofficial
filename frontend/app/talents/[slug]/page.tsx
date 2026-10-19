@@ -113,8 +113,10 @@ export async function generateMetadata({ params }: TalentDetailPageProps) {
 
         return constructMetadata({
           path: `/talents/${slug}`,
-          title: `${json.data.name} — ${json.data.headline}`,
-          description: json.data.bio || json.data.headline,
+          title: json.data.name,
+          description: json.data.headline
+            ? `${json.data.headline}. ${json.data.bio || ""}`.trim()
+            : json.data.bio || "Vetted specialist on PayTrizz",
           image: json.data.avatar_media?.path_large || json.data.avatar_media?.path_original || fallbackOg,
           type: "website",
         });
