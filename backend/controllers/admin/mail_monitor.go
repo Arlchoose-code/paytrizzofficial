@@ -80,7 +80,7 @@ func (ctrl *MailMonitorController) ShowMailbox(c *gin.Context) {
 
 	offset := (page - 1) * perPage
 	var messages []models.MailMessage
-	query.Order("sort_at DESC").Offset(offset).Limit(perPage).Find(&messages)
+	query.Preload("Attachments").Preload("Labels").Order("sort_at DESC").Offset(offset).Limit(perPage).Find(&messages)
 
 	lastPage := int((total + int64(perPage) - 1) / int64(perPage))
 	if lastPage < 1 {

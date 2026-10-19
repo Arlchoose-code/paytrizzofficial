@@ -174,6 +174,16 @@ func (s *MailService) GetFolderCounts(accessibleBoxIDs []uint64, filterBoxID *ui
 
 	boxScope := s.db.Model(&models.MailMessage{})
 	if filterBoxID != nil && *filterBoxID > 0 {
+		isAllowed := false
+		for _, id := range accessibleBoxIDs {
+			if id == *filterBoxID {
+				isAllowed = true
+				break
+			}
+		}
+		if !isAllowed {
+			return resp, nil
+		}
 		boxScope = boxScope.Where("mailbox_id = ?", *filterBoxID)
 	} else {
 		boxScope = boxScope.Where("mailbox_id IN ?", accessibleBoxIDs)

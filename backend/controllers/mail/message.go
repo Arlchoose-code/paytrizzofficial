@@ -45,18 +45,6 @@ func (ctrl *MessageController) getAccessibleBoxIDs(c *gin.Context) ([]uint64, ui
 	userID := userIDVal.(uint64)
 	role := roleVal.(string)
 
-	if role == "admin" {
-		// Admin has full authority over all mailboxes (company and monitored talent boxes)
-		var boxes []models.Mailbox
-		if err := config.DB.Model(&models.Mailbox{}).Where("status != ?", models.MailboxStatusDeleted).Find(&boxes).Error; err == nil && len(boxes) > 0 {
-			var ids []uint64
-			for _, b := range boxes {
-				ids = append(ids, b.ID)
-			}
-			return ids, userID, role, nil
-		}
-	}
-
 	boxes, err := ctrl.mailboxService.GetUserMailboxes(userID, role)
 	if err != nil {
 		return nil, 0, "", err
@@ -131,7 +119,7 @@ func (ctrl *MessageController) Counts(c *gin.Context) {
 
 // Show returns message detail, sanitizes HTML, and marks as read
 func (ctrl *MessageController) Show(c *gin.Context) {
-	boxIDs, _, _, err := ctrl.getAccessibleBoxIDs(c)
+	boxIDs, _, role, err := ctrl.getAccessibleBoxIDs(c)
 	if err != nil {
 		helpers.RespondError(c, http.StatusUnauthorized, err.Error())
 		return
@@ -144,6 +132,22 @@ func (ctrl *MessageController) Show(c *gin.Context) {
 	}
 
 	markRead := c.DefaultQuery("mark_read", "true") == "true"
+	if role == "admin" {
+		// For admin inspecting individual messages via Mail Monitor, allow querying across any active mailbox
+		var allBoxIDs []uint64
+		if err := config.DB.Model(&models.Mailbox{}).Where("status != ?", models.MailboxStatusDeleted).Pluck("id", &allBoxIDs).Error; err == nil && len(allBoxIDs) > 0 {
+			boxIDs = allBoxIDs
+		}
+		// If target message belongs to a talent mailbox, NEVER mark as read during admin audit inspection
+		var targetMsg models.MailMessage
+		if err := config.DB.Select("mailbox_id").First(&targetMsg, id).Error; err == nil {
+			var box models.Mailbox
+			if err := config.DB.Select("owner_type").First(&box, targetMsg.MailboxID).Error; err == nil && box.OwnerType == models.MailboxOwnerTalent {
+				markRead = false
+			}
+		}
+	}
+
 	msg, err := ctrl.mailService.GetMessageDetail(boxIDs, id, markRead)
 	if err != nil {
 		helpers.RespondError(c, http.StatusNotFound, err.Error())
@@ -155,7 +159,7 @@ func (ctrl *MessageController) Show(c *gin.Context) {
 
 // Thread returns all messages in the conversation thread for a given message
 func (ctrl *MessageController) Thread(c *gin.Context) {
-	boxIDs, _, _, err := ctrl.getAccessibleBoxIDs(c)
+	boxIDs, _, role, err := ctrl.getAccessibleBoxIDs(c)
 	if err != nil {
 		helpers.RespondError(c, http.StatusUnauthorized, err.Error())
 		return
@@ -165,6 +169,13 @@ func (ctrl *MessageController) Thread(c *gin.Context) {
 	if err != nil {
 		helpers.RespondError(c, http.StatusBadRequest, "Invalid message ID")
 		return
+	}
+
+	if role == "admin" {
+		var allBoxIDs []uint64
+		if err := config.DB.Model(&models.Mailbox{}).Where("status != ?", models.MailboxStatusDeleted).Pluck("id", &allBoxIDs).Error; err == nil && len(allBoxIDs) > 0 {
+			boxIDs = allBoxIDs
+		}
 	}
 
 	msg, err := ctrl.mailService.GetMessageDetail(boxIDs, id, false)

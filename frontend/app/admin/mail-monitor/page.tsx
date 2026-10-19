@@ -125,7 +125,7 @@ export default function MailMonitorPage() {
           <div className="space-y-4">
             <MailApp
               scope="talent"
-              readOnly={false}
+              readOnly={true}
               monitoredMailboxId={inspectingBox.id}
               monitoredMailboxAddress={inspectingBox.address}
               monitoredTalentName={inspectingBox.user?.name}
