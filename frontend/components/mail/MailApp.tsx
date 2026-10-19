@@ -20,6 +20,19 @@ interface MailAppProps {
   standalone?: boolean;
 }
 
+const INITIAL_FOLDER_COUNTS: FolderCounts = {
+  inbox: 0, starred: 0, snoozed: 0, sent: 0, drafts: 0, scheduled: 0, all_mail: 0, spam: 0, trash: 0,
+};
+
+const mapAttachments = (atts?: any[]) =>
+  (atts || []).map((a: any) => ({
+    id: a.id,
+    original_name: a.original_name || a.filename || "attachment",
+    size_bytes: a.size_bytes,
+    mime: a.mime || "application/octet-stream",
+    download_url: a.download_url,
+  }));
+
 export function MailApp({
   scope,
   readOnly = false,
@@ -32,17 +45,7 @@ export function MailApp({
   const [mailboxes, setMailboxes] = useState<MailboxItem[]>([]);
   const [selectedMailboxId, setSelectedMailboxId] = useState<number | null>(monitoredMailboxId || null);
   const [activeFolder, setActiveFolder] = useState<string>("inbox");
-  const [folderCounts, setFolderCounts] = useState<FolderCounts>({
-    inbox: 0,
-    starred: 0,
-    snoozed: 0,
-    sent: 0,
-    drafts: 0,
-    scheduled: 0,
-    all_mail: 0,
-    spam: 0,
-    trash: 0,
-  });
+  const [folderCounts, setFolderCounts] = useState<FolderCounts>(INITIAL_FOLDER_COUNTS);
 
   // Messages & View State
   const [messages, setMessages] = useState<MessageItem[]>([]);
@@ -70,18 +73,12 @@ export function MailApp({
   const [composeInitialInReplyTo, setComposeInitialInReplyTo] = useState("");
   const [composeInitialMailboxId, setComposeInitialMailboxId] = useState<number | undefined>(undefined);
   const [composeInitialAttachments, setComposeInitialAttachments] = useState<any[]>([]);
-  const [inlineReplyText, setInlineReplyText] = useState("");
-  const [replySending, setReplySending] = useState(false);
 
   const handleOpenNewCompose = () => {
     setEditingDraft(null);
     setComposeInitialMailboxId(selectedMailboxId || undefined);
-    setComposeInitialTo("");
-    setComposeInitialCc("");
-    setComposeInitialBcc("");
-    setComposeInitialSubject("");
-    setComposeInitialBodyHtml("");
-    setComposeInitialInReplyTo("");
+    setComposeInitialTo(""); setComposeInitialCc(""); setComposeInitialBcc("");
+    setComposeInitialSubject(""); setComposeInitialBodyHtml(""); setComposeInitialInReplyTo("");
     setComposeInitialAttachments([]);
     setShowCompose(true);
   };
@@ -328,67 +325,6 @@ export function MailApp({
     fetchLabels,
   });
 
-  // 10. Inline Reply with Undo Send
-  const handleSendReply = async () => {
-    if (!selectedMessage || !inlineReplyText.trim()) return;
-    setReplySending(true);
-    try {
-      const recipientAddr =
-        selectedMessage.folder === "sent" && selectedMessage.to_json?.[0]?.address
-          ? selectedMessage.to_json[0].address
-          : selectedMessage.from_address;
-      const recipientName =
-        selectedMessage.folder === "sent" && selectedMessage.to_json?.[0]?.name
-          ? selectedMessage.to_json[0].name
-          : selectedMessage.from_name;
-      const inReplyTo = selectedMessage.rfc_message_id || String(selectedMessage.id);
-
-      const payload = {
-        mailbox_id: selectedMailboxId || selectedMessage.mailbox_id,
-        to: [{ name: recipientName, address: recipientAddr }],
-        subject: selectedMessage.subject.startsWith("Re:") ? selectedMessage.subject : `Re: ${selectedMessage.subject}`,
-        body_text: inlineReplyText,
-        body_html: `<p>${inlineReplyText.replace(/\n/g, "<br/>")}</p>`,
-        in_reply_to: inReplyTo,
-      };
-
-      const res = await fetch("/api/proxy/mail/messages", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-
-      const json = await res.json();
-      if (!res.ok) throw new Error(json.message || "Failed to dispatch reply");
-
-      const sentMsgId = json.data?.id;
-      setInlineReplyText("");
-
-      toast.success("Reply queued! (Undoable within 8s)", {
-        action: {
-          label: "Undo Send",
-          onClick: async () => {
-            if (sentMsgId) {
-              await fetch(`/api/proxy/mail/messages/${sentMsgId}/undo`, { method: "POST" });
-              toast.info("Reply sending was undone and returned to drafts.");
-              fetchMessages();
-            }
-          },
-        },
-        duration: 8000,
-      });
-
-      fetchMessages();
-      fetchCounts();
-      if (selectedMessage) {
-        handleSelectMessage(selectedMessage);
-      }
-    } catch (err: any) {
-      toast.error(err.message || "Failed to send reply");
-    } finally {
-      setReplySending(false);
-    }
-  };
 
   return (
     <div
@@ -591,15 +527,7 @@ export function MailApp({
               setComposeInitialSubject(subj);
               setComposeInitialBodyHtml(quotedHtml || "");
               setComposeInitialInReplyTo(inReplyTo || "");
-              setComposeInitialAttachments(
-                (originalAtts || []).map((a: any) => ({
-                  id: a.id,
-                  original_name: a.original_name || a.filename || "attachment",
-                  size_bytes: a.size_bytes,
-                  mime: a.mime || "application/octet-stream",
-                  download_url: a.download_url,
-                }))
-              );
+              setComposeInitialAttachments(mapAttachments(originalAtts));
               setShowCompose(true);
             }}
             onForward={(subj, quotedHtml, originalAtts, mailboxId) => {
@@ -610,25 +538,13 @@ export function MailApp({
               setComposeInitialBcc("");
               setComposeInitialSubject(subj);
               setComposeInitialBodyHtml(quotedHtml || "");
-              setComposeInitialAttachments(
-                (originalAtts || []).map((a: any) => ({
-                  id: a.id,
-                  original_name: a.original_name || a.filename || "attachment",
-                  size_bytes: a.size_bytes,
-                  mime: a.mime || "application/octet-stream",
-                  download_url: a.download_url,
-                }))
-              );
+              setComposeInitialAttachments(mapAttachments(originalAtts));
               setShowCompose(true);
             }}
             onEditDraft={handleEditDraft}
             onSnooze={(id) => setSnoozeTargetId(id)}
             onToggleStar={(id, star) => handleToggleStar(id, star)}
             onMoveFolder={(id, fld) => handleMoveFolder(id, fld)}
-            inlineReplyText={inlineReplyText}
-            setInlineReplyText={setInlineReplyText}
-            replySending={replySending}
-            onSendReply={handleSendReply}
           />
         </div>
       </div>

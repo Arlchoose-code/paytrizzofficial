@@ -38,10 +38,6 @@ interface MailReadingPaneProps {
   onToggleStar: (id: number, currentStarred: boolean) => void;
   onMoveFolder: (id: number, folder: string) => void;
   onAssignLabels?: (messageId: number, labelIds: number[]) => Promise<void>;
-  inlineReplyText: string;
-  setInlineReplyText: (text: string) => void;
-  replySending: boolean;
-  onSendReply: () => void;
   onBack?: () => void;
 }
 
@@ -59,10 +55,6 @@ export function MailReadingPane({
   onToggleStar,
   onMoveFolder,
   onAssignLabels,
-  inlineReplyText,
-  setInlineReplyText,
-  replySending,
-  onSendReply,
   onBack,
 }: MailReadingPaneProps) {
   const [showImages, setShowImages] = useState(false);
@@ -261,7 +253,7 @@ export function MailReadingPane({
         })}
       </div>
 
-      {/* Bottom Action Buttons & Quick Reply */}
+      {/* Bottom Action Buttons (Reply, Reply All, Forward, Reactions) */}
       <MailReplyBox
         message={latestMessage}
         readOnly={readOnly}
@@ -271,10 +263,6 @@ export function MailReadingPane({
         onReply={() => handleReplyMessage(latestMessage)}
         onReplyAll={() => handleReplyAllMessage(latestMessage)}
         onForward={() => handleForwardMessage(latestMessage)}
-        inlineReplyText={inlineReplyText}
-        setInlineReplyText={setInlineReplyText}
-        replySending={replySending}
-        onSendReply={onSendReply}
       />
     </div>
   );

@@ -9,6 +9,9 @@ import {
   buildAdminNavGroups,
   buildTalentNavGroups,
   type NavBadgeCounts,
+  type SearchResultItem,
+  ADMIN_SEARCH_ROUTES,
+  TALENT_SEARCH_ROUTES,
 } from "./dashboard-nav";
 import { User } from "@/types/user";
 import { getMeApi, logoutApi, refreshApi } from "@/lib/api/auth";
@@ -33,44 +36,6 @@ interface NotificationItem {
   href: string;
   status?: string;
 }
-
-interface SearchResultItem {
-  title: string;
-  category: string;
-  href: string;
-  description?: string;
-}
-
-const ADMIN_SEARCH_ROUTES: SearchResultItem[] = [
-  { title: "Dashboard Overview", category: "Navigation", href: "/admin", description: "System metrics and telemetry" },
-  { title: "Contact Inquiries", category: "Navigation", href: "/admin/messages", description: "Incoming client messages" },
-  { title: "Applications", category: "Navigation", href: "/admin/applications", description: "Project intake and squad requests" },
-  { title: "Talents Directory", category: "Navigation", href: "/admin/talents", description: "Manage specialist rosters" },
-  { title: "Admin Users", category: "Navigation", href: "/admin/users", description: "Admin accounts and access" },
-  { title: "Projects & Cases", category: "Navigation", href: "/admin/projects", description: "Portfolio and case studies" },
-  { title: "Blog & Editorial", category: "Navigation", href: "/admin/blog", description: "Publish articles and review submissions" },
-  { title: "Services Catalog", category: "Navigation", href: "/admin/services", description: "Offerings and service cards" },
-  { title: "Media Library", category: "Navigation", href: "/admin/media", description: "Uploaded images and documents" },
-  { title: "Pages CMS", category: "Navigation", href: "/admin/pages", description: "Visual section editor" },
-  { title: "Company Webmail", category: "Navigation", href: "/webmail", description: "AWS SES webmail inbox" },
-  { title: "Mail Settings", category: "Navigation", href: "/admin/mail-settings", description: "Reserved names, limits, retention" },
-  { title: "Mail Monitor", category: "Navigation", href: "/admin/mail-monitor", description: "Audit talent mailboxes" },
-  { title: "Mail Logs", category: "Navigation", href: "/admin/mail-logs", description: "Audit events & exports" },
-  { title: "Email Outbox", category: "Navigation", href: "/admin/email-outbox", description: "Outbox transaction queues" },
-  { title: "Platform Settings", category: "Navigation", href: "/admin/settings", description: "Branding, SEO, robots, toggles" },
-  { title: "Audit Logs", category: "Navigation", href: "/admin/audit-logs", description: "Every admin action, recorded" },
-];
-
-const TALENT_SEARCH_ROUTES: SearchResultItem[] = [
-  { title: "Talent Dashboard", category: "Navigation", href: "/talent", description: "Overview and metrics" },
-  { title: "My Profile", category: "Navigation", href: "/talent/profile", description: "Edit bio, skills, CV, links" },
-  { title: "Experience & Education", category: "Navigation", href: "/talent/experiences", description: "Work history and degrees" },
-  { title: "My Blog", category: "Navigation", href: "/talent/blog", description: "Draft and submit articles" },
-  { title: "My Projects", category: "Navigation", href: "/talent/projects", description: "Manage case studies and projects" },
-  { title: "Client Messages", category: "Navigation", href: "/talent/messages", description: "Direct contact inquiries" },
-  { title: "Personal Webmail", category: "Navigation", href: "/webmail", description: "Webmail inbox" },
-  { title: "Account Settings", category: "Navigation", href: "/talent/account", description: "Security & password" },
-];
 
 export function DashboardLayout({ children, role = "admin", title = "PayTrizz" }: DashboardLayoutProps) {
   const pathname = usePathname();

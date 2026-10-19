@@ -20,25 +20,18 @@ interface MailReplyBoxProps {
   onReply: () => void;
   onReplyAll: () => void;
   onForward: () => void;
-  inlineReplyText: string;
-  setInlineReplyText: (text: string) => void;
-  replySending: boolean;
-  onSendReply: () => void;
+  inlineReplyText?: string;
+  setInlineReplyText?: (text: string) => void;
+  replySending?: boolean;
+  onSendReply?: () => void;
 }
 
 export function MailReplyBox({
   message,
   readOnly,
-  mailboxes,
-  selectedMailboxId,
-  onSelectMailbox,
   onReply,
   onReplyAll,
   onForward,
-  inlineReplyText,
-  setInlineReplyText,
-  replySending,
-  onSendReply,
 }: MailReplyBoxProps) {
   const [showReactionPicker, setShowReactionPicker] = useState(false);
   const [reactions, setReactions] = useState<string[]>([]);
@@ -47,13 +40,12 @@ export function MailReplyBox({
     return null;
   }
 
-  const senderName = message.from_name || message.from_address;
   const hasMultipleRecipients =
     (message.cc_json && message.cc_json.length > 0) ||
     (message.to_json && message.to_json.length > 1);
 
   return (
-    <div className="p-4 border-t border-ink-100 bg-[#FAFAFA] space-y-3 shrink-0">
+    <div className="p-4 border-t border-neutral-200 bg-[#FAFAFA] space-y-3 shrink-0">
       {/* Reaction chips */}
       {reactions.length > 0 && (
         <div className="flex items-center gap-1.5 flex-wrap">
@@ -134,59 +126,6 @@ export function MailReplyBox({
               ))}
             </div>
           )}
-        </div>
-      </div>
-
-      {/* Quick Reply Form */}
-      <div className="pt-2 border-t border-neutral-200/60 space-y-2">
-        <div className="flex items-center justify-between text-xs font-semibold text-ink-600 flex-wrap gap-2">
-          <div className="flex items-center gap-2 flex-wrap">
-            <span className="flex items-center gap-1.5 text-ink-700">
-              <CornerUpLeft className="w-3.5 h-3.5 text-ink-500" />
-              Reply to <span className="font-bold text-ink-900">{senderName}</span>
-            </span>
-            {mailboxes && mailboxes.length > 0 && (
-              <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-neutral-100 border border-neutral-200 text-[11px] text-neutral-600">
-                <span className="text-neutral-400 font-medium">from:</span>
-                {mailboxes.length > 1 && onSelectMailbox ? (
-                  <select
-                    value={selectedMailboxId || message.mailbox_id || mailboxes[0].id}
-                    onChange={(e) => onSelectMailbox(Number(e.target.value))}
-                    className="bg-transparent font-bold text-ink-900 outline-none cursor-pointer max-w-[170px] truncate"
-                  >
-                    {mailboxes.map((b) => (
-                      <option key={b.id} value={b.id}>
-                        {b.address}
-                      </option>
-                    ))}
-                  </select>
-                ) : (
-                  <span className="font-bold text-ink-900">
-                    {mailboxes.find((b) => b.id === (selectedMailboxId || message.mailbox_id))?.address || mailboxes[0].address}
-                  </span>
-                )}
-              </div>
-            )}
-          </div>
-          <span className="text-[11px] text-ink-400 font-normal">
-            Direct send (with 8s undo window)
-          </span>
-        </div>
-        <div className="flex gap-2">
-          <textarea
-            rows={2}
-            placeholder="Write a quick reply..."
-            value={inlineReplyText}
-            onChange={(e) => setInlineReplyText(e.target.value)}
-            className="flex-1 p-2.5 rounded-xl border border-ink-200 bg-white text-xs text-ink-900 focus:outline-none focus:ring-2 focus:ring-brand-500"
-          />
-          <button
-            onClick={onSendReply}
-            disabled={replySending || !inlineReplyText.trim()}
-            className="px-5 rounded-xl font-bold text-xs bg-brand-500 hover:bg-brand-400 text-ink-900 disabled:opacity-50 transition-all flex items-center justify-center gap-1.5 shadow-sm cursor-pointer shrink-0"
-          >
-            {replySending ? "Sending..." : "Send"}
-          </button>
         </div>
       </div>
     </div>

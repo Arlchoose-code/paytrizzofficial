@@ -17,7 +17,7 @@ export default function AdminMailPage() {
                 Company Scope
               </span>
               <span className="flex items-center gap-1 text-[11px] text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full font-semibold">
-                <Shield className="w-3 h-3" /> AWS SES Verified
+                <Shield className="w-3 h-3" /> Secure Mail Infrastructure
               </span>
             </div>
             <h1 className="text-2xl font-black text-ink-900 tracking-tight">Company Webmail</h1>
