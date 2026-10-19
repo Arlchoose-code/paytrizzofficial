@@ -161,6 +161,7 @@ func (ctrl *TalentController) Show(c *gin.Context) {
 		Preload("Skills.Skill").
 		Preload("Experiences").
 		Preload("Educations").
+		Preload("Certificates").
 		Preload("Links").
 		Preload("AvatarMedia").
 		Preload("CVMedia").
@@ -232,6 +233,8 @@ func (ctrl *TalentController) Show(c *gin.Context) {
 			EndDate:        endDateStr,
 			IsCurrent:      exp.IsCurrent,
 			Description:    exp.Description,
+			Skills:         exp.Skills,
+			Media:          exp.Media,
 			SortOrder:      exp.SortOrder,
 		})
 	}
@@ -245,7 +248,40 @@ func (ctrl *TalentController) Show(c *gin.Context) {
 			FieldOfStudy: edu.FieldOfStudy,
 			StartYear:    edu.StartYear,
 			EndYear:      edu.EndYear,
+			Grade:        edu.Grade,
+			Activities:   edu.Activities,
+			Description:  edu.Description,
+			Skills:       edu.Skills,
+			Media:        edu.Media,
 			SortOrder:    edu.SortOrder,
+		})
+	}
+
+	var certItems []structs.TalentCertificateItem
+	for _, cItem := range t.Certificates {
+		var iDate *string
+		if cItem.IssueDate != nil {
+			s := cItem.IssueDate.Format("2006-01-02")
+			iDate = &s
+		}
+		var expDate *string
+		if cItem.ExpirationDate != nil {
+			s := cItem.ExpirationDate.Format("2006-01-02")
+			expDate = &s
+		}
+		certItems = append(certItems, structs.TalentCertificateItem{
+			ID:             cItem.ID,
+			Name:           cItem.Name,
+			IssuingOrg:     cItem.IssuingOrg,
+			IssueDate:      iDate,
+			ExpirationDate: expDate,
+			DoesNotExpire:  cItem.DoesNotExpire,
+			CredentialID:   cItem.CredentialID,
+			CredentialURL:  cItem.CredentialURL,
+			Skills:         cItem.Skills,
+			MediaURL:       cItem.MediaURL,
+			Media:          cItem.Media,
+			SortOrder:      cItem.SortOrder,
 		})
 	}
 
@@ -284,6 +320,7 @@ func (ctrl *TalentController) Show(c *gin.Context) {
 		Skills:          skillItems,
 		Experiences:     experienceItems,
 		Educations:      educationItems,
+		Certificates:    certItems,
 		Links:           linkItems,
 		Projects:        []structs.ProjectResponse{},
 		Posts:           []structs.PostResponse{},

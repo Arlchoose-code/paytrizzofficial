@@ -326,6 +326,7 @@ export default async function TalentDetailPage({ params }: TalentDetailPageProps
                   articlesCount={talent.posts?.length || 0}
                   hasSkills={Boolean(talent.skills && talent.skills.length > 0)}
                   hasExperiences={Boolean(talent.experiences && talent.experiences.length > 0)}
+                  hasCertificates={Boolean(talent.certificates && talent.certificates.length > 0)}
                 />
               </div>
             </div>
@@ -476,6 +477,7 @@ export default async function TalentDetailPage({ params }: TalentDetailPageProps
               <TalentExperienceSection
                 experiences={talent.experiences}
                 educations={talent.educations}
+                certificates={talent.certificates}
               />
 
               {/* 7. Direct Contact Form */}

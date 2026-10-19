@@ -58,10 +58,15 @@ func (ctrl *TagController) Store(c *gin.Context) {
 
 	name := strings.TrimSpace(req.Name)
 
-	var count int64
-	config.DB.Model(&models.Tag{}).Where("LOWER(name) = ?", strings.ToLower(name)).Count(&count)
-	if count > 0 {
-		helpers.RespondError(c, http.StatusConflict, "Tag already exists")
+	var existing models.Tag
+	if err := config.DB.Where("LOWER(name) = ?", strings.ToLower(name)).First(&existing).Error; err == nil {
+		helpers.RespondSuccess(c, http.StatusOK, "Tag already exists", structs.TagResponse{
+			ID:        existing.ID,
+			Name:      existing.Name,
+			Slug:      existing.Slug,
+			CreatedAt: existing.CreatedAt,
+			UpdatedAt: existing.UpdatedAt,
+		})
 		return
 	}
 

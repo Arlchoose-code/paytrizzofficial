@@ -2,7 +2,7 @@
 
 import { X, Upload } from "lucide-react";
 import { RichTextEditor } from "@/components/shared/RichTextEditor";
-import { cn } from "@/lib/utils";
+import { TagInputSelector, type TagOption } from "@/components/shared/TagInputSelector";
 
 export interface ProjectItem {
   id: number;
@@ -53,9 +53,11 @@ interface TalentProjectModalProps {
   coverPreviewUrl: string;
   onOpenPicker: () => void;
   onRemoveCover?: () => void;
-  availableTags: { id: number; name: string }[];
+  availableTags: TagOption[];
   selectedTagIds: number[];
   toggleTag: (tagId: number) => void;
+  setSelectedTagIds?: (ids: number[]) => void;
+  onTagCreated?: (newTag: TagOption) => void;
   content: string;
   setContent: (v: string) => void;
   submitting: boolean;
@@ -93,6 +95,8 @@ export function TalentProjectModal({
   availableTags,
   selectedTagIds,
   toggleTag,
+  setSelectedTagIds,
+  onTagCreated,
   content,
   setContent,
   submitting,
@@ -198,21 +202,11 @@ export function TalentProjectModal({
               <select
                 value={status}
                 onChange={(e) => setStatus(e.target.value)}
-                disabled={editingProject?.status === "published"}
-                className="w-full px-3.5 py-2.5 rounded-xl border border-ink-200 text-xs text-ink-900 bg-white focus:outline-none focus:ring-2 focus:ring-brand-500 disabled:opacity-60"
+                className="w-full px-3.5 py-2.5 rounded-xl border border-ink-200 text-xs text-ink-900 bg-white focus:outline-none focus:ring-2 focus:ring-brand-500"
               >
-                {editingProject?.status === "published" && (
-                  <option value="published">Published (live)</option>
-                )}
-                <option value="pending">Submit for review (admin approves)</option>
+                <option value="published">Publish (live immediately)</option>
                 <option value="draft">Save as draft (private)</option>
               </select>
-              {editingProject?.status === "published" && (
-                <p className="text-[11px] text-ink-500 mt-1">
-                  Published projects can&apos;t be edited directly — saving creates a revision for admin
-                  approval while the live version stays untouched.
-                </p>
-              )}
             </div>
           </div>
 
@@ -315,32 +309,25 @@ export function TalentProjectModal({
             </div>
           </div>
 
-          {/* Tags Selector */}
-          <div>
-            <label className="block text-xs font-bold uppercase tracking-wider text-ink-600 mb-1.5">
-              Tags
-            </label>
-            <div className="flex flex-wrap gap-2">
-              {availableTags.map((t) => {
-                const sel = selectedTagIds.includes(t.id);
-                return (
-                  <button
-                    key={t.id}
-                    type="button"
-                    onClick={() => toggleTag(t.id)}
-                    className={cn(
-                      "px-2.5 py-1 rounded-full text-xs font-bold transition",
-                      sel
-                        ? "bg-brand-500 text-ink-900"
-                        : "bg-neutral-100 text-ink-600 hover:bg-neutral-200"
-                    )}
-                  >
-                    #{t.name}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
+          {/* Tags Selector with Custom Tag Creation */}
+          <TagInputSelector
+            availableTags={availableTags}
+            selectedTagIds={selectedTagIds}
+            onChange={(ids) => {
+              if (setSelectedTagIds) {
+                setSelectedTagIds(ids);
+              } else {
+                ids.forEach((id) => {
+                  if (!selectedTagIds.includes(id)) toggleTag(id);
+                });
+                selectedTagIds.forEach((id) => {
+                  if (!ids.includes(id)) toggleTag(id);
+                });
+              }
+            }}
+            onTagCreated={onTagCreated}
+            apiEndpoint="/api/proxy/talent/tags"
+          />
 
           {/* TipTap Rich Text Editor */}
           <div>

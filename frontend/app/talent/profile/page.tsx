@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { DashboardLayout } from "@/components/shared/DashboardLayout";
 import { toast } from "sonner";
 import {
@@ -13,10 +14,12 @@ import {
   RefreshCw,
   Lock,
   Eye,
+  Award,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ExperienceEditor, ExperienceItem } from "@/components/talent/ExperienceEditor";
 import { EducationEditor, EducationItem } from "@/components/talent/EducationEditor";
+import { CertificatesEditor, CertificateItem } from "@/components/talent/CertificatesEditor";
 import { ProfilePreviewCard } from "@/components/talent/ProfilePreviewCard";
 import { ProfileSkillsTab, SkillItem, CatalogSkill } from "@/components/talent/ProfileSkillsTab";
 import { ProfileLinksTab, LinkItem } from "@/components/talent/ProfileLinksTab";
@@ -24,12 +27,24 @@ import { ProfileBasicTab } from "@/components/talent/ProfileBasicTab";
 import { ProfileBioTab } from "@/components/talent/ProfileBioTab";
 import { ImagePickerDialog, PickedMedia } from "@/components/shared/ImagePickerDialog";
 
-type ProfileTab = "basic" | "bio" | "skills" | "experience" | "education" | "links";
+type ProfileTab = "basic" | "bio" | "skills" | "experience" | "education" | "certificates" | "links";
 
 const MAX_SPECIALTIES = 3;
 
 export default function TalentProfileEditorPage() {
-  const [activeTab, setActiveTab] = useState<ProfileTab>("basic");
+  const searchParams = useSearchParams();
+  const tabParam = searchParams.get("tab");
+  const initialTab: ProfileTab =
+    tabParam === "experience" ||
+    tabParam === "education" ||
+    tabParam === "certificates" ||
+    tabParam === "skills" ||
+    tabParam === "bio" ||
+    tabParam === "links"
+      ? tabParam
+      : "basic";
+
+  const [activeTab, setActiveTab] = useState<ProfileTab>(initialTab);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [avatarPickerOpen, setAvatarPickerOpen] = useState(false);
@@ -52,6 +67,7 @@ export default function TalentProfileEditorPage() {
   const [skills, setSkills] = useState<SkillItem[]>([]);
   const [experiences, setExperiences] = useState<ExperienceItem[]>([]);
   const [educations, setEducations] = useState<EducationItem[]>([]);
+  const [certificates, setCertificates] = useState<CertificateItem[]>([]);
   const [links, setLinks] = useState<LinkItem[]>([]);
 
   const [talentData, setTalentData] = useState<any>(null);
@@ -111,6 +127,8 @@ export default function TalentProfileEditorPage() {
               end_date: exp.end_date || null,
               is_current: exp.is_current ?? true,
               description: exp.description || "",
+              skills: exp.skills || "[]",
+              media: exp.media || "[]",
             }))
           );
           setEducations(
@@ -121,6 +139,26 @@ export default function TalentProfileEditorPage() {
               field_of_study: edu.field_of_study || "",
               start_year: edu.start_year || 2014,
               end_year: edu.end_year || null,
+              grade: edu.grade || "",
+              activities: edu.activities || "",
+              description: edu.description || "",
+              skills: edu.skills || "[]",
+              media: edu.media || "[]",
+            }))
+          );
+          setCertificates(
+            (t.certificates || []).map((c: any) => ({
+              id: c.id,
+              name: c.name,
+              issuing_org: c.issuing_org,
+              issue_date: c.issue_date || "",
+              expiration_date: c.expiration_date || null,
+              does_not_expire: Boolean(c.does_not_expire),
+              credential_id: c.credential_id || "",
+              credential_url: c.credential_url || "",
+              skills: c.skills || "[]",
+              media_url: c.media_url || "",
+              media: c.media || "[]",
             }))
           );
           setLinks(t.links || []);
@@ -178,6 +216,8 @@ export default function TalentProfileEditorPage() {
           end_date: exp.is_current ? null : exp.end_date,
           is_current: exp.is_current,
           description: exp.description,
+          skills: exp.skills || "[]",
+          media: exp.media || "[]",
           sort_order: idx + 1,
         })),
         educations: educations.map((edu, idx) => ({
@@ -186,6 +226,24 @@ export default function TalentProfileEditorPage() {
           field_of_study: edu.field_of_study,
           start_year: Number(edu.start_year) || 2014,
           end_year: edu.end_year ? Number(edu.end_year) : null,
+          grade: edu.grade || "",
+          activities: edu.activities || "",
+          description: edu.description || "",
+          skills: edu.skills || "[]",
+          media: edu.media || "[]",
+          sort_order: idx + 1,
+        })),
+        certificates: certificates.map((c, idx) => ({
+          name: c.name,
+          issuing_org: c.issuing_org,
+          issue_date: c.issue_date || null,
+          expiration_date: c.does_not_expire ? null : c.expiration_date || null,
+          does_not_expire: Boolean(c.does_not_expire),
+          credential_id: c.credential_id || "",
+          credential_url: c.credential_url || "",
+          skills: c.skills || "[]",
+          media_url: c.media_url || "",
+          media: c.media || "[]",
           sort_order: idx + 1,
         })),
         links: links.map((l, idx) => ({
@@ -238,6 +296,7 @@ export default function TalentProfileEditorPage() {
     { id: "skills", label: "Skills", icon: Briefcase },
     { id: "experience", label: "Experience", icon: Briefcase },
     { id: "education", label: "Education", icon: GraduationCap },
+    { id: "certificates", label: "Certifications", icon: Award },
     { id: "links", label: "Links", icon: Share2 },
   ];
 
@@ -345,20 +404,18 @@ export default function TalentProfileEditorPage() {
 
             {/* Tab: Experience */}
             {activeTab === "experience" && (
-              <div className="space-y-4">
-                <ExperienceEditor experiences={experiences} onChange={setExperiences} />
-                <p className="text-[11px] text-ink-500 px-1">
-                  Tip: you can also manage this from the dedicated{" "}
-                  <a href="/talent/experiences" className="font-bold text-brand-600 hover:underline">
-                    Experience & Education
-                  </a>{" "}
-                  page.
-                </p>
-              </div>
+              <ExperienceEditor experiences={experiences} onChange={setExperiences} />
             )}
 
             {/* Tab: Education */}
-            {activeTab === "education" && <EducationEditor educations={educations} onChange={setEducations} />}
+            {activeTab === "education" && (
+              <EducationEditor educations={educations} onChange={setEducations} />
+            )}
+
+            {/* Tab: Certifications */}
+            {activeTab === "certificates" && (
+              <CertificatesEditor certificates={certificates} onChange={setCertificates} />
+            )}
 
             {/* Tab: Links */}
             {activeTab === "links" && (

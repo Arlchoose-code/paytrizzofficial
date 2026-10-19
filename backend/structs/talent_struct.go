@@ -19,6 +19,8 @@ type TalentExperienceItem struct {
 	EndDate        *string `json:"end_date"`   // YYYY-MM-DD or null
 	IsCurrent      bool    `json:"is_current"`
 	Description    string  `json:"description"`
+	Skills         string  `json:"skills,omitempty"`
+	Media          string  `json:"media,omitempty"`
 	SortOrder      int     `json:"sort_order"`
 }
 
@@ -29,7 +31,27 @@ type TalentEducationItem struct {
 	FieldOfStudy string `json:"field_of_study"`
 	StartYear    int    `json:"start_year"`
 	EndYear      *int   `json:"end_year"`
+	Grade        string `json:"grade,omitempty"`
+	Activities   string `json:"activities,omitempty"`
+	Description  string `json:"description,omitempty"`
+	Skills       string `json:"skills,omitempty"`
+	Media        string `json:"media,omitempty"`
 	SortOrder    int    `json:"sort_order"`
+}
+
+type TalentCertificateItem struct {
+	ID             uint64  `json:"id,omitempty"`
+	Name           string  `json:"name"`
+	IssuingOrg     string  `json:"issuing_org"`
+	IssueDate      *string `json:"issue_date,omitempty"`
+	ExpirationDate *string `json:"expiration_date,omitempty"`
+	DoesNotExpire  bool    `json:"does_not_expire"`
+	CredentialID   string  `json:"credential_id,omitempty"`
+	CredentialURL  string  `json:"credential_url,omitempty"`
+	Skills         string  `json:"skills,omitempty"`
+	MediaURL       string  `json:"media_url,omitempty"`
+	Media          string  `json:"media,omitempty"`
+	SortOrder      int     `json:"sort_order"`
 }
 
 type TalentLinkItem struct {
@@ -68,6 +90,7 @@ type TalentResponse struct {
 	Skills          []TalentSkillItem      `json:"skills,omitempty"`
 	Experiences     []TalentExperienceItem `json:"experiences,omitempty"`
 	Educations      []TalentEducationItem  `json:"educations,omitempty"`
+	Certificates    []TalentCertificateItem `json:"certificates,omitempty"`
 	Links           []TalentLinkItem       `json:"links,omitempty"`
 	Projects        []ProjectResponse      `json:"projects"`
 	Posts           []PostResponse         `json:"posts"`
@@ -107,6 +130,7 @@ type UpdateTalentProfileRequest struct {
 	Skills          []TalentSkillItem      `json:"skills"`
 	Experiences     []TalentExperienceItem `json:"experiences"`
 	Educations      []TalentEducationItem  `json:"educations"`
+	Certificates    []TalentCertificateItem `json:"certificates"`
 	Links           []TalentLinkItem       `json:"links"`
 }
 
@@ -128,6 +152,7 @@ type AdminUpdateTalentRequest struct {
 	Skills          []TalentSkillItem      `json:"skills"`
 	Experiences     []TalentExperienceItem `json:"experiences"`
 	Educations      []TalentEducationItem  `json:"educations"`
+	Certificates    []TalentCertificateItem `json:"certificates"`
 	Links           []TalentLinkItem       `json:"links"`
 }
 

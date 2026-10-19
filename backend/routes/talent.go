@@ -18,6 +18,7 @@ func RegisterTalentRoutes(
 	postCtrl *talent.PostController,
 	projectCtrl *talent.ProjectController,
 	mediaCtrl *admin.MediaController,
+	tagCtrl *admin.TagController,
 	tokenService *services.TokenService,
 ) {
 	talentGroup := r.Group("/talent")
@@ -39,6 +40,10 @@ func RegisterTalentRoutes(
 		talentGroup.GET("/media", mediaCtrl.Index)
 		talentGroup.POST("/media", mediaCtrl.Store)
 		talentGroup.DELETE("/media/:id", mediaCtrl.Destroy)
+
+		// Tags lookup & creation for Talent
+		talentGroup.GET("/tags", tagCtrl.Index)
+		talentGroup.POST("/tags", tagCtrl.Store)
 
 		// Messages
 		messages := talentGroup.Group("/messages")

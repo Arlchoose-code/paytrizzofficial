@@ -12,11 +12,13 @@ import {
   RefreshCw,
   Check,
   AlertCircle,
+  Eye,
 } from "lucide-react";
 import Link from "next/link";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { PostFormModal, PostItem } from "@/components/admin/PostFormModal";
+import { PostReviewModal } from "@/components/admin/PostReviewModal";
 import { TaxonomyManager } from "@/components/admin/TaxonomyManager";
 
 type StatusTab = "all" | "pending" | "published" | "draft";
@@ -36,6 +38,8 @@ export default function AdminPostsPage() {
   // Modal State
   const [modalOpen, setModalOpen] = useState(false);
   const [editingPost, setEditingPost] = useState<PostItem | null>(null);
+  const [reviewPost, setReviewPost] = useState<PostItem | null>(null);
+  const [reviewModalOpen, setReviewModalOpen] = useState(false);
 
   // Delete Dialog State
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -385,6 +389,19 @@ export default function AdminPostsPage() {
                       </td>
                       <td className="px-6 py-4 text-right">
                         <div className="inline-flex items-center gap-2">
+                          {/* Review Button */}
+                          <button
+                            onClick={() => {
+                              setReviewPost(post);
+                              setReviewModalOpen(true);
+                            }}
+                            className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-neutral-100 hover:bg-neutral-200 text-ink-900 font-bold text-xs transition cursor-pointer"
+                            title="Review formatted article preview"
+                          >
+                            <Eye className="w-3.5 h-3.5 text-neutral-600" />
+                            <span>Review</span>
+                          </button>
+
                           {/* Quick Approve Button for Pending Articles */}
                           {post.status === "pending" && (
                             <button
@@ -506,6 +523,26 @@ export default function AdminPostsPage() {
             </div>
           </div>
         )}
+
+        {/* Editorial Review Modal */}
+        <PostReviewModal
+          open={reviewModalOpen}
+          post={reviewPost}
+          onClose={() => {
+            setReviewModalOpen(false);
+            setReviewPost(null);
+          }}
+          onEdit={(p) => {
+            setReviewModalOpen(false);
+            openEditModal(p);
+          }}
+          onApprove={async (p) => {
+            await handleQuickApprove(p);
+            setReviewModalOpen(false);
+            setReviewPost(null);
+          }}
+          approving={actionBusyId === reviewPost?.id}
+        />
       </div>
     </DashboardLayout>
   );

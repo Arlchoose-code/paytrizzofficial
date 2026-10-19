@@ -10,6 +10,11 @@ type TalentEducation struct {
 	FieldOfStudy string    `gorm:"type:varchar(100);not null" json:"field_of_study"`
 	StartYear    int       `gorm:"not null" json:"start_year"`
 	EndYear      *int      `json:"end_year"`
+	Grade        string    `gorm:"type:varchar(60)" json:"grade"`
+	Activities   string    `gorm:"type:text" json:"activities"`
+	Description  string    `gorm:"type:text" json:"description"`
+	Skills       string    `gorm:"type:text" json:"skills"`
+	Media        string    `gorm:"type:text" json:"media"`
 	SortOrder    int       `gorm:"default:0;not null" json:"sort_order"`
 	CreatedAt    time.Time `json:"created_at"`
 	UpdatedAt    time.Time `json:"updated_at"`

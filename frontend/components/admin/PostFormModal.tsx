@@ -25,7 +25,7 @@ export interface PostItem {
   category_id?: number | null;
   category?: { id: number; name: string } | null;
   author_talent_id?: number | null;
-  author_talent?: { id: number; name: string } | null;
+  author_talent?: { id: number; name: string; headline?: string; slug?: string } | null;
   tags?: { id: number; name: string }[];
   status: string;
   published_at?: string | null;

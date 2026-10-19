@@ -46,6 +46,7 @@ func (ctrl *ProfileController) Show(c *gin.Context) {
 		Preload("Skills.Skill").
 		Preload("Experiences").
 		Preload("Educations").
+		Preload("Certificates").
 		Preload("Links").
 		Preload("AvatarMedia").
 		Preload("CVMedia").
@@ -111,6 +112,8 @@ func (ctrl *ProfileController) Show(c *gin.Context) {
 			EndDate:        endDateStr,
 			IsCurrent:      exp.IsCurrent,
 			Description:    exp.Description,
+			Skills:         exp.Skills,
+			Media:          exp.Media,
 			SortOrder:      exp.SortOrder,
 		})
 	}
@@ -124,7 +127,40 @@ func (ctrl *ProfileController) Show(c *gin.Context) {
 			FieldOfStudy: edu.FieldOfStudy,
 			StartYear:    edu.StartYear,
 			EndYear:      edu.EndYear,
+			Grade:        edu.Grade,
+			Activities:   edu.Activities,
+			Description:  edu.Description,
+			Skills:       edu.Skills,
+			Media:        edu.Media,
 			SortOrder:    edu.SortOrder,
+		})
+	}
+
+	var certItems []structs.TalentCertificateItem
+	for _, cItem := range t.Certificates {
+		var iDate *string
+		if cItem.IssueDate != nil {
+			s := cItem.IssueDate.Format("2006-01-02")
+			iDate = &s
+		}
+		var expDate *string
+		if cItem.ExpirationDate != nil {
+			s := cItem.ExpirationDate.Format("2006-01-02")
+			expDate = &s
+		}
+		certItems = append(certItems, structs.TalentCertificateItem{
+			ID:             cItem.ID,
+			Name:           cItem.Name,
+			IssuingOrg:     cItem.IssuingOrg,
+			IssueDate:      iDate,
+			ExpirationDate: expDate,
+			DoesNotExpire:  cItem.DoesNotExpire,
+			CredentialID:   cItem.CredentialID,
+			CredentialURL:  cItem.CredentialURL,
+			Skills:         cItem.Skills,
+			MediaURL:       cItem.MediaURL,
+			Media:          cItem.Media,
+			SortOrder:      cItem.SortOrder,
 		})
 	}
 
@@ -164,6 +200,7 @@ func (ctrl *ProfileController) Show(c *gin.Context) {
 		Skills:          skillItems,
 		Experiences:     experienceItems,
 		Educations:      educationItems,
+		Certificates:    certItems,
 		Links:           linkItems,
 		CreatedAt:       t.CreatedAt,
 	}
@@ -276,6 +313,8 @@ func (ctrl *ProfileController) Update(c *gin.Context) {
 			EndDate:        eDate,
 			IsCurrent:      exp.IsCurrent,
 			Description:    exp.Description,
+			Skills:         exp.Skills,
+			Media:          exp.Media,
 			SortOrder:      idx + 1,
 		})
 	}
@@ -290,7 +329,51 @@ func (ctrl *ProfileController) Update(c *gin.Context) {
 			FieldOfStudy: edu.FieldOfStudy,
 			StartYear:    edu.StartYear,
 			EndYear:      edu.EndYear,
+			Grade:        edu.Grade,
+			Activities:   edu.Activities,
+			Description:  edu.Description,
+			Skills:       edu.Skills,
+			Media:        edu.Media,
 			SortOrder:    idx + 1,
+		})
+	}
+
+	// Sync certificates
+	tx.Where("talent_id = ?", talent.ID).Delete(&models.TalentCertificate{})
+	for idx, cert := range req.Certificates {
+		var iDate *time.Time
+		if cert.IssueDate != nil && *cert.IssueDate != "" {
+			layout := "2006-01-02"
+			if len(*cert.IssueDate) == 7 {
+				layout = "2006-01"
+			}
+			if t, err := time.Parse(layout, *cert.IssueDate); err == nil {
+				iDate = &t
+			}
+		}
+		var expDate *time.Time
+		if !cert.DoesNotExpire && cert.ExpirationDate != nil && *cert.ExpirationDate != "" {
+			layout := "2006-01-02"
+			if len(*cert.ExpirationDate) == 7 {
+				layout = "2006-01"
+			}
+			if t, err := time.Parse(layout, *cert.ExpirationDate); err == nil {
+				expDate = &t
+			}
+		}
+		tx.Create(&models.TalentCertificate{
+			TalentID:       talent.ID,
+			Name:           cert.Name,
+			IssuingOrg:     cert.IssuingOrg,
+			IssueDate:      iDate,
+			ExpirationDate: expDate,
+			DoesNotExpire:  cert.DoesNotExpire,
+			CredentialID:   cert.CredentialID,
+			CredentialURL:  cert.CredentialURL,
+			Skills:         cert.Skills,
+			MediaURL:       cert.MediaURL,
+			Media:          cert.Media,
+			SortOrder:      idx + 1,
 		})
 	}
 

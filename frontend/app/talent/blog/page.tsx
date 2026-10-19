@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { DashboardLayout } from "@/components/shared/DashboardLayout";
 import {
   FileText,
@@ -8,52 +8,28 @@ import {
   Edit,
   Trash2,
   ExternalLink,
-  X,
-  Upload,
+  Search,
+  BookOpen,
 } from "lucide-react";
 import { toast } from "sonner";
-import { RichTextEditor } from "@/components/shared/RichTextEditor";
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
-import { ImagePickerDialog, PickedMedia } from "@/components/shared/ImagePickerDialog";
+import { type TagOption } from "@/components/shared/TagInputSelector";
+import { TalentBlogModal, TalentPostItem } from "@/components/talent/TalentBlogModal";
 import { cn } from "@/lib/utils";
 
-interface PostItem {
-  id: number;
-  title: string;
-  slug: string;
-  excerpt: string;
-  content: string;
-  cover_media_id?: number | null;
-  cover_media?: { path_medium?: string; path_original?: string } | null;
-  category_id?: number | null;
-  category?: { id: number; name: string } | null;
-  tags?: { id: number; name: string }[];
-  status: string;
-  published_at?: string | null;
-  created_at: string;
-}
+type StatusFilter = "all" | "pending" | "published" | "draft";
 
 export default function TalentBlogPage() {
-  const [posts, setPosts] = useState<PostItem[]>([]);
+  const [posts, setPosts] = useState<TalentPostItem[]>([]);
   const [categories, setCategories] = useState<{ id: number; name: string }[]>([]);
-  const [availableTags, setAvailableTags] = useState<{ id: number; name: string }[]>([]);
+  const [availableTags, setAvailableTags] = useState<TagOption[]>([]);
   const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
 
   // Modal State
   const [modalOpen, setModalOpen] = useState(false);
-  const [editingPost, setEditingPost] = useState<PostItem | null>(null);
-  const [submitting, setSubmitting] = useState(false);
-
-  // Form Fields
-  const [title, setTitle] = useState("");
-  const [excerpt, setExcerpt] = useState("");
-  const [content, setContent] = useState("");
-  const [categoryId, setCategoryId] = useState<number | "">("");
-  const [selectedTagIds, setSelectedTagIds] = useState<number[]>([]);
-  const [status, setStatus] = useState("pending");
-  const [coverMediaId, setCoverMediaId] = useState<number | null>(null);
-  const [coverPreviewUrl, setCoverPreviewUrl] = useState("");
-  const [pickerOpen, setPickerOpen] = useState(false);
+  const [editingPost, setEditingPost] = useState<TalentPostItem | null>(null);
   const [deleteTargetId, setDeleteTargetId] = useState<number | null>(null);
   const [deleting, setDeleting] = useState(false);
 
@@ -82,104 +58,53 @@ export default function TalentBlogPage() {
 
   const openCreateModal = () => {
     setEditingPost(null);
-    setTitle("");
-    setExcerpt("");
-    setContent("");
-    setCategoryId(categories[0]?.id || "");
-    setSelectedTagIds([]);
-    setStatus("pending");
-    setCoverMediaId(null);
-    setCoverPreviewUrl("");
     setModalOpen(true);
   };
 
-  const openEditModal = (p: PostItem) => {
+  const openEditModal = (p: TalentPostItem) => {
     setEditingPost(p);
-    setTitle(p.title);
-    setExcerpt(p.excerpt);
-    setContent(p.content);
-    setCategoryId(p.category_id || "");
-    setSelectedTagIds(p.tags?.map((t) => t.id) || []);
-    setStatus(p.status);
-    setCoverMediaId(p.cover_media_id || null);
-    setCoverPreviewUrl(p.cover_media?.path_medium || p.cover_media?.path_original || "");
     setModalOpen(true);
-  };
-
-  const handleCoverSelect = (media: PickedMedia) => {
-    setCoverMediaId(media.id);
-    setCoverPreviewUrl(media.path_medium || media.path_original || "");
-    toast.success("Cover image selected");
-  };
-
-  const handleSave = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!title.trim() || !content.trim()) {
-      toast.error("Title and content are required");
-      return;
-    }
-
-    setSubmitting(true);
-    try {
-      const payload = {
-        title,
-        excerpt: excerpt || title.slice(0, 150),
-        content,
-        category_id: categoryId ? Number(categoryId) : null,
-        cover_media_id: coverMediaId,
-        tag_ids: selectedTagIds,
-        status,
-      };
-
-      const url = editingPost
-        ? `/api/proxy/talent/posts/${editingPost.id}`
-        : "/api/proxy/talent/posts";
-      const method = editingPost ? "PUT" : "POST";
-
-      const res = await fetch(url, {
-        method,
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-
-      const json = await res.json();
-      if (!res.ok) throw new Error(json.message || "Failed to save article");
-
-      toast.success(
-        editingPost
-          ? json.message || "Article updated!"
-          : "Article submitted for admin review!"
-      );
-      setModalOpen(false);
-      fetchPosts();
-    } catch (err: any) {
-      toast.error(err.message || "Failed to save article");
-    } finally {
-      setSubmitting(false);
-    }
   };
 
   const handleDelete = async () => {
     if (deleteTargetId === null) return;
     setDeleting(true);
     try {
-      const res = await fetch(`/api/proxy/talent/posts/${deleteTargetId}`, { method: "DELETE" });
+      const res = await fetch(`/api/proxy/talent/posts/${deleteTargetId}`, {
+        method: "DELETE",
+      });
       if (!res.ok) throw new Error("Failed to delete post");
       toast.success("Article deleted");
       setDeleteTargetId(null);
       fetchPosts();
-    } catch (err: any) {
-      toast.error(err.message || "Failed to delete post");
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Failed to delete post";
+      toast.error(msg);
     } finally {
       setDeleting(false);
     }
   };
 
-  const toggleTag = (id: number) => {
-    setSelectedTagIds((prev) =>
-      prev.includes(id) ? prev.filter((t) => t !== id) : [...prev, id]
-    );
+  const handleTagCreated = (newTag: TagOption) => {
+    setAvailableTags((prev) => {
+      if (prev.some((t) => t.id === newTag.id)) return prev;
+      return [...prev, newTag];
+    });
   };
+
+  const filteredPosts = useMemo(() => {
+    return posts.filter((p) => {
+      const matchesSearch =
+        !search ||
+        p.title.toLowerCase().includes(search.toLowerCase()) ||
+        p.slug.toLowerCase().includes(search.toLowerCase());
+
+      const matchesStatus =
+        statusFilter === "all" || p.status === statusFilter;
+
+      return matchesSearch && matchesStatus;
+    });
+  }, [posts, search, statusFilter]);
 
   return (
     <DashboardLayout role="talent" title="My Blog Articles">
@@ -191,332 +116,272 @@ export default function TalentBlogPage() {
               <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-brand-500 text-ink-900">
                 Thought Leadership
               </span>
-              <span className="text-xs text-ink-500 font-semibold">
-                Articles published under your name
-              </span>
+              <span className="text-xs text-neutral-500">Articles published under your name</span>
             </div>
-            <h1 className="text-2xl font-black text-ink-900 tracking-tight">My Blog Articles</h1>
-            <p className="text-xs text-ink-500">
+            <h1 className="text-2xl font-black text-ink-900 tracking-tight">
+              My Blog Articles
+            </h1>
+            <p className="text-xs text-neutral-500 mt-1">
               Publish technical write-ups and industry insights with TipTap rich text formatting.
             </p>
           </div>
 
           <button
             onClick={openCreateModal}
-            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full text-xs font-bold bg-brand-500 hover:bg-brand-400 text-ink-900 shadow-sm transition self-start sm:self-auto"
+            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full text-xs font-bold bg-brand-500 hover:bg-brand-400 text-ink-900 shadow-sm transition self-start sm:self-auto cursor-pointer"
           >
             <Plus className="w-4 h-4" />
             <span>Write New Article</span>
           </button>
         </div>
 
-        {/* Posts List */}
-        {loading ? (
-          <div className="bg-white rounded-2xl border border-ink-100 p-12 text-center text-xs text-ink-400">
-            Loading articles...
-          </div>
-        ) : posts.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-            {posts.map((p) => (
-              <div
-                key={p.id}
-                className="bg-white rounded-3xl border border-ink-100 p-5 shadow-sm hover:shadow-md transition flex flex-col justify-between"
-              >
-                <div>
-                  <div className="flex items-center justify-between gap-2 mb-3">
-                    <span
-                      className={cn(
-                        "px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase",
-                        p.status === "published" && "bg-emerald-100 text-emerald-800",
-                        p.status === "pending" && "bg-brand-500 text-ink-900",
-                        p.status === "rejected" && "bg-red-50 text-danger",
-                        p.status === "draft" && "bg-neutral-200 text-ink-700"
-                      )}
-                    >
-                      {p.status}
-                    </span>
-                    <span className="text-[11px] text-ink-400">
-                      {p.created_at ? new Date(p.created_at).toLocaleDateString() : ""}
-                    </span>
-                  </div>
-
-                  <h3 className="font-bold text-ink-900 text-sm line-clamp-2">{p.title}</h3>
-                  <p className="text-xs text-ink-500 mt-1 line-clamp-3">{p.excerpt}</p>
-
-                  {p.tags && p.tags.length > 0 && (
-                    <div className="flex flex-wrap gap-1.5 mt-3">
-                      {p.tags.slice(0, 3).map((t) => (
-                        <span
-                          key={t.id}
-                          className="px-2 py-0.5 rounded-md bg-neutral-100 text-ink-700 text-[10px] font-semibold"
-                        >
-                          #{t.name}
-                        </span>
-                      ))}
-                    </div>
-                  )}
-                </div>
-
-                <div className="mt-5 pt-3 border-t border-ink-100 flex items-center justify-between">
-                  {p.status === "published" ? (
-                    <a
-                      href={`/blog/${p.slug}`}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="text-xs font-bold text-brand-600 hover:underline flex items-center gap-1"
-                    >
-                      <span>View Public</span>
-                      <ExternalLink className="w-3 h-3" />
-                    </a>
-                  ) : (
-                    <span className="text-[11px] text-ink-400 font-semibold">
-                      {p.status === "pending" ? "Awaiting review" : "Not published"}
-                    </span>
-                  )}
-
-                  <div className="flex items-center gap-2">
-                    <button
-                      onClick={() => openEditModal(p)}
-                      className="p-1.5 rounded-lg text-ink-500 hover:text-ink-900 hover:bg-neutral-100 transition"
-                      title="Edit"
-                    >
-                      <Edit className="w-4 h-4" />
-                    </button>
-                    <button
-                      onClick={() => setDeleteTargetId(p.id)}
-                      className="p-1.5 rounded-lg text-ink-500 hover:text-red-600 hover:bg-red-50 transition"
-                      title="Delete"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <div className="bg-white rounded-3xl border border-ink-100 p-12 text-center space-y-3">
-            <FileText className="w-10 h-10 text-ink-300 mx-auto" />
-            <h3 className="font-bold text-ink-900 text-sm">No articles published yet</h3>
-            <p className="text-xs text-ink-500 max-w-sm mx-auto">
-              Write and share your insights to boost your professional reputation on PayTrizz.
-            </p>
+        {/* Filters & Search */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="inline-flex items-center p-1 bg-neutral-100 rounded-2xl border border-neutral-200">
             <button
-              onClick={openCreateModal}
-              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full text-xs font-bold bg-brand-500 text-ink-900"
+              onClick={() => setStatusFilter("all")}
+              className={cn(
+                "px-3.5 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer",
+                statusFilter === "all"
+                  ? "bg-white text-ink-900 shadow-xs"
+                  : "text-neutral-500 hover:text-ink-900"
+              )}
             >
-              <Plus className="w-4 h-4" />
-              <span>Write My First Article</span>
+              All ({posts.length})
+            </button>
+            <button
+              onClick={() => setStatusFilter("pending")}
+              className={cn(
+                "px-3.5 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer",
+                statusFilter === "pending"
+                  ? "bg-white text-ink-900 shadow-xs"
+                  : "text-neutral-500 hover:text-ink-900"
+              )}
+            >
+              Awaiting Review
+            </button>
+            <button
+              onClick={() => setStatusFilter("published")}
+              className={cn(
+                "px-3.5 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer",
+                statusFilter === "published"
+                  ? "bg-white text-ink-900 shadow-xs"
+                  : "text-neutral-500 hover:text-ink-900"
+              )}
+            >
+              Published
+            </button>
+            <button
+              onClick={() => setStatusFilter("draft")}
+              className={cn(
+                "px-3.5 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer",
+                statusFilter === "draft"
+                  ? "bg-white text-ink-900 shadow-xs"
+                  : "text-neutral-500 hover:text-ink-900"
+              )}
+            >
+              Draft
             </button>
           </div>
-        )}
 
-        {/* Create / Edit Modal */}
-        {modalOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-ink-900/60 backdrop-blur-xs">
-            <div className="bg-white rounded-3xl w-full max-w-3xl max-h-[90vh] overflow-y-auto shadow-2xl border border-ink-100 flex flex-col">
-              <div className="p-6 border-b border-ink-100 flex items-center justify-between sticky top-0 bg-white z-10">
-                <h2 className="text-base font-extrabold text-ink-900">
-                  {editingPost ? "Edit Article" : "Write New Article"}
-                </h2>
-                <button
-                  onClick={() => setModalOpen(false)}
-                  className="p-1.5 rounded-lg text-ink-400 hover:text-ink-900 transition"
-                >
-                  <X className="w-5 h-5" />
-                </button>
-              </div>
+          <div className="relative w-full sm:w-72">
+            <Search className="w-4 h-4 text-neutral-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+            <input
+              type="text"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search articles by title..."
+              className="w-full pl-9 pr-4 py-2 rounded-xl text-xs border border-neutral-200 bg-white text-ink-900 focus:outline-none focus:ring-2 focus:ring-brand-500/20"
+            />
+          </div>
+        </div>
 
-              <form onSubmit={handleSave} className="p-6 space-y-5 flex-1">
-                <div>
-                  <label className="block text-xs font-bold uppercase tracking-wider text-ink-600 mb-1.5">
-                    Article Title
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    value={title}
-                    onChange={(e) => setTitle(e.target.value)}
-                    placeholder="e.g. Scaling Microservices with Go and AWS SES"
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-ink-200 text-xs text-ink-900 focus:outline-none focus:ring-2 focus:ring-brand-500 font-bold"
-                  />
-                </div>
+        {/* Articles Table */}
+        <div className="bg-white rounded-3xl border border-neutral-200 shadow-xs overflow-hidden">
+          {loading ? (
+            <div className="p-12 text-center text-xs text-neutral-400">
+              Loading articles...
+            </div>
+          ) : filteredPosts.length === 0 ? (
+            <div className="p-16 text-center text-neutral-400">
+              <BookOpen className="w-10 h-10 mx-auto mb-3 text-neutral-300" />
+              <p className="font-semibold text-neutral-700">No articles found</p>
+              <p className="text-xs text-neutral-400 mt-1">
+                {search
+                  ? "Try adjusting your search criteria."
+                  : "Write your first editorial article using the button above."}
+              </p>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="border-b border-neutral-200 bg-neutral-50/75">
+                    <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-neutral-500">
+                      ARTICLE TITLE
+                    </th>
+                    <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-neutral-500">
+                      CATEGORY
+                    </th>
+                    <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-neutral-500">
+                      READING TIME
+                    </th>
+                    <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-neutral-500">
+                      TAGS
+                    </th>
+                    <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-neutral-500">
+                      STATUS
+                    </th>
+                    <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-neutral-500 text-right">
+                      ACTIONS
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-neutral-200">
+                  {filteredPosts.map((p) => (
+                    <tr key={p.id} className="hover:bg-neutral-50/50 transition">
+                      <td className="px-6 py-4">
+                        <div className="flex items-center gap-3">
+                          {p.cover_media ? (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img
+                              src={
+                                p.cover_media.path_thumb ||
+                                p.cover_media.path_medium ||
+                                p.cover_media.path_original
+                              }
+                              alt={p.title}
+                              className="w-12 h-9 rounded-lg object-cover border border-neutral-200 shrink-0"
+                            />
+                          ) : (
+                            <div className="w-12 h-9 rounded-lg bg-neutral-100 border border-neutral-200 flex items-center justify-center shrink-0 text-neutral-400">
+                              <FileText className="w-4 h-4" />
+                            </div>
+                          )}
+                          <div className="min-w-0">
+                            <div className="font-bold text-ink-900 truncate max-w-sm">
+                              {p.title}
+                            </div>
+                            <div className="text-xs text-neutral-400">
+                              /{p.slug}
+                            </div>
+                          </div>
+                        </div>
+                      </td>
 
-                <div>
-                  <label className="block text-xs font-bold uppercase tracking-wider text-ink-600 mb-1.5">
-                    Short Excerpt / Summary
-                  </label>
-                  <textarea
-                    rows={2}
-                    value={excerpt}
-                    onChange={(e) => setExcerpt(e.target.value)}
-                    placeholder="Brief 1-2 sentence overview for cards and meta description..."
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-ink-200 text-xs text-ink-900 focus:outline-none focus:ring-2 focus:ring-brand-500"
-                  />
-                </div>
+                      <td className="px-6 py-4 text-xs font-medium text-neutral-700">
+                        {p.category?.name || "Uncategorized"}
+                      </td>
 
-                {/* Category & Status */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-xs font-bold uppercase tracking-wider text-ink-600 mb-1.5">
-                      Category
-                    </label>
-                    <select
-                      value={categoryId}
-                      onChange={(e) => setCategoryId(e.target.value ? Number(e.target.value) : "")}
-                      className="w-full px-3.5 py-2.5 rounded-xl border border-ink-200 text-xs text-ink-900 bg-white focus:outline-none focus:ring-2 focus:ring-brand-500"
-                    >
-                      <option value="">Select Category</option>
-                      {categories.map((c) => (
-                        <option key={c.id} value={c.id}>
-                          {c.name}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
+                      <td className="px-6 py-4 text-xs text-neutral-500">
+                        {p.reading_time_minutes || 5} min read
+                      </td>
 
-                  <div>
-                    <label className="block text-xs font-bold uppercase tracking-wider text-ink-600 mb-1.5">
-                      Publishing Status
-                    </label>
-                    <select
-                      value={status}
-                      onChange={(e) => setStatus(e.target.value)}
-                      disabled={editingPost?.status === "published"}
-                      className="w-full px-3.5 py-2.5 rounded-xl border border-ink-200 text-xs text-ink-900 bg-white focus:outline-none focus:ring-2 focus:ring-brand-500 disabled:opacity-60"
-                    >
-                      {editingPost?.status === "published" && (
-                        <option value="published">Published (live)</option>
-                      )}
-                      <option value="pending">Submit for review (admin approves)</option>
-                      <option value="draft">Save as draft (private)</option>
-                    </select>
-                    {editingPost?.status === "published" && (
-                      <p className="text-[11px] text-ink-500 mt-1">
-                        Published articles can&apos;t be edited directly — saving creates a revision for admin
-                        approval while the live version stays untouched.
-                      </p>
-                    )}
-                  </div>
-                </div>
+                      <td className="px-6 py-4">
+                        <div className="flex flex-wrap gap-1 max-w-xs">
+                          {p.tags && p.tags.length > 0 ? (
+                            p.tags.slice(0, 3).map((t) => (
+                              <span
+                                key={t.id}
+                                className="px-2 py-0.5 rounded-md bg-neutral-100 text-neutral-600 text-[10px] font-semibold"
+                              >
+                                #{t.name}
+                              </span>
+                            ))
+                          ) : (
+                            <span className="text-neutral-400 text-xs">—</span>
+                          )}
+                          {p.tags && p.tags.length > 3 && (
+                            <span className="text-[10px] text-neutral-400 font-semibold">
+                              +{p.tags.length - 3}
+                            </span>
+                          )}
+                        </div>
+                      </td>
 
-                {/* Cover Image */}
-                <div>
-                  <label className="block text-xs font-bold uppercase tracking-wider text-ink-600 mb-1.5">
-                    Cover Image
-                  </label>
-                  <div className="flex items-center gap-4 p-3 bg-neutral-50 rounded-xl border border-ink-100">
-                    {coverPreviewUrl ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img
-                        src={coverPreviewUrl}
-                        alt="Cover"
-                        className="w-16 h-12 rounded-lg object-cover border border-neutral-200"
-                      />
-                    ) : (
-                      <div className="w-16 h-12 rounded-lg bg-ink-100 border border-ink-200 flex items-center justify-center text-ink-400 text-[10px]">
-                        No Cover
-                      </div>
-                    )}
-                    <div className="flex items-center gap-2">
-                      <button
-                        type="button"
-                        onClick={() => setPickerOpen(true)}
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold bg-white border border-ink-200 hover:border-brand-500 text-ink-800 transition cursor-pointer"
-                      >
-                        <Upload className="w-3.5 h-3.5" />
-                        <span>{coverPreviewUrl ? "Change Cover Image" : "Choose Cover Image"}</span>
-                      </button>
-                      {coverPreviewUrl && (
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setCoverMediaId(null);
-                            setCoverPreviewUrl("");
-                          }}
-                          className="px-2 py-1 text-xs text-danger hover:underline cursor-pointer"
-                        >
-                          Remove
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Tags Selector */}
-                <div>
-                  <label className="block text-xs font-bold uppercase tracking-wider text-ink-600 mb-1.5">
-                    Tags
-                  </label>
-                  <div className="flex flex-wrap gap-2">
-                    {availableTags.map((t) => {
-                      const sel = selectedTagIds.includes(t.id);
-                      return (
-                        <button
-                          key={t.id}
-                          type="button"
-                          onClick={() => toggleTag(t.id)}
+                      <td className="px-6 py-4">
+                        <span
                           className={cn(
-                            "px-2.5 py-1 rounded-full text-xs font-bold transition",
-                            sel
-                              ? "bg-brand-500 text-ink-900"
-                              : "bg-neutral-100 text-ink-600 hover:bg-neutral-200"
+                            "inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold",
+                            p.status === "published" && "bg-emerald-50 text-emerald-700 border border-emerald-200",
+                            p.status === "draft" && "bg-neutral-100 text-neutral-700 border border-neutral-200",
+                            p.status === "pending" && "bg-amber-50 text-amber-800 border border-amber-200"
                           )}
                         >
-                          #{t.name}
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
+                          <span
+                            className={cn(
+                              "w-1.5 h-1.5 rounded-full",
+                              p.status === "published"
+                                ? "bg-emerald-600"
+                                : p.status === "pending"
+                                ? "bg-amber-500 animate-pulse"
+                                : "bg-neutral-400"
+                            )}
+                          />
+                          <span>
+                            {p.status === "pending"
+                              ? "Awaiting Review"
+                              : p.status}
+                          </span>
+                        </span>
+                      </td>
 
-                {/* TipTap Rich Text Editor */}
-                <div>
-                  <label className="block text-xs font-bold uppercase tracking-wider text-ink-600 mb-1.5">
-                    Article Content (TipTap Rich Editor)
-                  </label>
-                  <RichTextEditor
-                    content={content}
-                    onChange={setContent}
-                    placeholder="Write your in-depth technical story here..."
-                  />
-                </div>
+                      <td className="px-6 py-4 text-right">
+                        <div className="inline-flex items-center gap-1.5">
+                          {p.status === "published" && (
+                            <a
+                              href={`/blog/${p.slug}`}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="inline-flex items-center gap-1 text-xs font-bold text-neutral-600 hover:text-brand-600 transition px-2.5 py-1.5 rounded-lg hover:bg-neutral-100 cursor-pointer"
+                              title="View Live Public Article"
+                            >
+                              <span>Live</span>
+                              <ExternalLink className="w-3.5 h-3.5" />
+                            </a>
+                          )}
 
-                <div className="pt-4 border-t border-ink-100 flex items-center justify-end gap-3 sticky bottom-0 bg-white">
-                  <button
-                    type="button"
-                    onClick={() => setModalOpen(false)}
-                    className="px-5 py-2.5 rounded-full text-xs font-bold text-ink-700 hover:bg-neutral-100 transition"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    disabled={submitting}
-                    className="px-6 py-2.5 rounded-full text-xs font-bold bg-brand-500 hover:bg-brand-400 text-ink-900 transition shadow-sm disabled:opacity-50"
-                  >
-                    {submitting ? "Saving..." : editingPost ? "Save Changes" : "Publish Article"}
-                  </button>
-                </div>
-              </form>
+                          <button
+                            onClick={() => openEditModal(p)}
+                            className="p-1.5 rounded-lg text-neutral-500 hover:text-ink-900 hover:bg-neutral-100 transition cursor-pointer"
+                            title="Edit Article"
+                          >
+                            <Edit className="w-4 h-4" />
+                          </button>
+
+                          <button
+                            onClick={() => setDeleteTargetId(p.id)}
+                            className="p-1.5 rounded-lg text-neutral-500 hover:text-red-600 hover:bg-red-50 transition cursor-pointer"
+                            title="Delete Article"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
-          </div>
-        )}
-      </div>
+          )}
+        </div>
 
-      <ImagePickerDialog
-        open={pickerOpen}
-        onClose={() => setPickerOpen(false)}
-        title="Choose Article Cover Image"
-        module="blog"
-        libraryModule="blog"
-        onSelect={handleCoverSelect}
-      />
+        {/* Extracted TalentBlogModal */}
+        <TalentBlogModal
+          open={modalOpen}
+          onClose={() => setModalOpen(false)}
+          editingPost={editingPost}
+          categories={categories}
+          availableTags={availableTags}
+          onSaveSuccess={fetchPosts}
+          onTagCreated={handleTagCreated}
+        />
+      </div>
 
       <ConfirmDialog
         open={deleteTargetId !== null}
         title="Delete this article?"
-        description="The article will be permanently removed from the public blog. This cannot be undone."
+        description="This article will be permanently removed. This cannot be undone."
         confirmLabel="Delete Article"
         danger
         loading={deleting}

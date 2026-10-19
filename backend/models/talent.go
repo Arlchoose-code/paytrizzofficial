@@ -38,6 +38,7 @@ type Talent struct {
 	Skills      []TalentSkill      `gorm:"foreignKey:TalentID;constraint:OnDelete:CASCADE" json:"skills,omitempty"`
 	Experiences []TalentExperience `gorm:"foreignKey:TalentID;constraint:OnDelete:CASCADE" json:"experiences,omitempty"`
 	Educations  []TalentEducation  `gorm:"foreignKey:TalentID;constraint:OnDelete:CASCADE" json:"educations,omitempty"`
+	Certificates []TalentCertificate `gorm:"foreignKey:TalentID;constraint:OnDelete:CASCADE" json:"certificates,omitempty"`
 	Links       []TalentLink       `gorm:"foreignKey:TalentID;constraint:OnDelete:CASCADE" json:"links,omitempty"`
 
 	CreatedAt time.Time `json:"created_at"`

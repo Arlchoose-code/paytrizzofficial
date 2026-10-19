@@ -10,6 +10,7 @@ interface TalentDetailAnchorPillsProps {
   articlesCount: number;
   hasSkills: boolean;
   hasExperiences: boolean;
+  hasCertificates?: boolean;
 }
 
 export function TalentDetailContactButton({
@@ -50,6 +51,7 @@ export function TalentDetailAnchorPills({
   articlesCount,
   hasSkills,
   hasExperiences,
+  hasCertificates,
 }: TalentDetailAnchorPillsProps) {
   const smoothScrollTo = (targetId: string) => (e: React.MouseEvent) => {
     e.preventDefault();
@@ -103,6 +105,15 @@ export function TalentDetailAnchorPills({
           className="px-3.5 py-1.5 rounded-full text-xs font-bold bg-white text-ink-800 hover:bg-neutral-100 transition-colors shadow-xs cursor-pointer"
         >
           Experience
+        </a>
+      )}
+      {hasCertificates && (
+        <a
+          href="#certifications"
+          onClick={smoothScrollTo("certifications")}
+          className="px-3.5 py-1.5 rounded-full text-xs font-bold bg-white text-ink-800 hover:bg-neutral-100 transition-colors shadow-xs cursor-pointer"
+        >
+          Certifications
         </a>
       )}
       {contactEnabled && (

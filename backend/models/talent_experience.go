@@ -13,6 +13,8 @@ type TalentExperience struct {
 	EndDate        *time.Time `json:"end_date"`
 	IsCurrent      bool       `gorm:"default:false;not null" json:"is_current"`
 	Description    string     `gorm:"type:text" json:"description"`
+	Skills         string     `gorm:"type:text" json:"skills"`
+	Media          string     `gorm:"type:text" json:"media"`
 	SortOrder      int        `gorm:"default:0;not null" json:"sort_order"`
 	CreatedAt   time.Time  `json:"created_at"`
 	UpdatedAt   time.Time  `json:"updated_at"`

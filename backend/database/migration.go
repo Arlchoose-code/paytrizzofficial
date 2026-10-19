@@ -42,6 +42,7 @@ func AutoMigrate(db *gorm.DB) error {
 		&models.TalentSkill{},
 		&models.TalentExperience{},
 		&models.TalentEducation{},
+		&models.TalentCertificate{},
 		&models.TalentLink{},
 
 		// Group E - Projects, Blog & Revisions

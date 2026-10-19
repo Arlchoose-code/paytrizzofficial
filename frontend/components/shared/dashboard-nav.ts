@@ -15,7 +15,6 @@ import {
   UserCog,
   ScrollText,
   SlidersHorizontal,
-  GraduationCap,
 } from "lucide-react";
 
 export interface DashboardNavItem {
@@ -102,7 +101,6 @@ export function buildTalentNavGroups(counts: NavBadgeCounts): DashboardNavGroup[
       items: [
         { label: "Dashboard", href: "/talent", icon: LayoutDashboard },
         { label: "Profile", href: "/talent/profile", icon: Users },
-        { label: "Experience & Education", href: "/talent/experiences", icon: GraduationCap },
         { label: "Blog", href: "/talent/blog", icon: FileText },
         { label: "Projects", href: "/talent/projects", icon: Briefcase },
       ],

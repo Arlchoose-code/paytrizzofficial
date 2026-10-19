@@ -231,6 +231,7 @@ func main() {
 			talentPostCtrl,
 			talentProjectCtrl,
 			mediaCtrl,
+			adminTagCtrl,
 			tokenService,
 		)
 
