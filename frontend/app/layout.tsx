@@ -56,7 +56,7 @@ export default async function RootLayout({
   const maintenanceActive = settings.maintenance_mode === "true";
 
   return (
-    <html lang="en" className={`${plusJakartaSans.variable} h-full antialiased`}>
+    <html lang="en" className={`${plusJakartaSans.variable} h-full antialiased scroll-smooth`}>
       <body className="min-h-full flex flex-col font-sans bg-white text-ink-900 selection:bg-brand-500 selection:text-ink-900">
         <Suspense fallback={null}>
           <NavigationProgressBar />

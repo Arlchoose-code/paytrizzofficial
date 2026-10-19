@@ -4,6 +4,9 @@ import { useCallback, useEffect, useState } from "react";
 import { Plus, Edit2, Trash2, RefreshCw, X } from "lucide-react";
 import { toast } from "sonner";
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
+import { IconPicker } from "@/components/shared/IconPicker";
+import { CategorySelector } from "@/components/shared/CategorySelector";
+import { DynamicIcon } from "@/components/shared/DynamicIcon";
 import { cn } from "@/lib/utils";
 
 export interface TaxonomyFieldOption {
@@ -14,7 +17,7 @@ export interface TaxonomyFieldOption {
 export interface TaxonomyField {
   key: string;
   label: string;
-  type: "text" | "number" | "select" | "color" | "checkbox" | "textarea";
+  type: "text" | "number" | "select" | "color" | "checkbox" | "textarea" | "icon" | "category";
   required?: boolean;
   placeholder?: string;
   options?: TaxonomyFieldOption[];
@@ -82,7 +85,8 @@ export function TaxonomyManager({
       const json = await res.json();
       if (res.ok && json.success) {
         const data = json.data;
-        setRows(paged ? data?.data || [] : Array.isArray(data) ? data : []);
+        const list = paged ? data?.data || [] : Array.isArray(data) ? data : [];
+        setRows(list);
       } else {
         toast.error(json.message || `Failed to load ${title.toLowerCase()}`);
       }
@@ -96,6 +100,16 @@ export function TaxonomyManager({
   useEffect(() => {
     fetchRows();
   }, [fetchRows]);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && modalOpen && !saving) {
+        setModalOpen(false);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [modalOpen, saving]);
 
   const openCreate = () => {
     setEditing(null);
@@ -117,7 +131,11 @@ export function TaxonomyManager({
     for (const f of fields) {
       if (editing && f.createOnly) continue;
       if (!editing && f.editOnly) continue;
-      payload[f.key] = form[f.key];
+      if (f.type === "number" || f.key === "sort_order") {
+        payload[f.key] = form[f.key] === "" || form[f.key] == null ? 0 : Number(form[f.key]);
+      } else {
+        payload[f.key] = form[f.key];
+      }
     }
 
     try {
@@ -210,7 +228,18 @@ export function TaxonomyManager({
                   <tr key={row.id} className="hover:bg-ink-50/40 transition">
                     {columns.map((col) => (
                       <td key={col.key} className={cn("py-3.5 px-5 text-xs text-ink-800", col.className)}>
-                        {col.render ? col.render(row) : (row[col.key] ?? "—")}
+                        {col.render ? (
+                          col.render(row)
+                        ) : col.key === "icon" && row[col.key] ? (
+                          <span className="inline-flex items-center gap-2">
+                            <span className="w-6 h-6 rounded-md bg-brand-50 border border-brand-200 flex items-center justify-center text-ink-900 shrink-0">
+                              <DynamicIcon name={row[col.key]} className="w-3.5 h-3.5" />
+                            </span>
+                            <span className="font-semibold text-ink-900">{row[col.key]}</span>
+                          </span>
+                        ) : (
+                          (row[col.key] ?? "—")
+                        )}
                       </td>
                     ))}
                     <td className="py-3.5 px-5 text-right whitespace-nowrap">
@@ -268,7 +297,37 @@ export function TaxonomyManager({
                     {f.label} {f.required && <span className="text-danger">*</span>}
                   </label>
 
-                  {f.type === "select" ? (
+                  {f.key === "icon" || f.type === "icon" ? (
+                    <IconPicker
+                      value={form[f.key] || ""}
+                      onChange={(val) => setForm({ ...form, [f.key]: val })}
+                      placeholder={f.placeholder || "Select Lucide icon..."}
+                    />
+                  ) : f.key === "category" || f.type === "category" ? (
+                    <CategorySelector
+                      value={form[f.key] || ""}
+                      onChange={(val) => setForm({ ...form, [f.key]: val })}
+                      existingCategories={rows.map((r) => r.category).filter(Boolean)}
+                      placeholder={f.placeholder || "e.g. frontend, backend, devops"}
+                      required={f.required}
+                    />
+                  ) : f.key === "color" || f.type === "color" ? (
+                    <div className="flex items-center gap-3">
+                      <input
+                        type="color"
+                        value={form[f.key] || "#FCCF00"}
+                        onChange={(e) => setForm({ ...form, [f.key]: e.target.value })}
+                        className="w-10 h-10 rounded-lg border border-ink-200 cursor-pointer bg-white p-0.5"
+                      />
+                      <input
+                        type="text"
+                        value={form[f.key] ?? ""}
+                        onChange={(e) => setForm({ ...form, [f.key]: e.target.value })}
+                        placeholder="#FCCF00"
+                        className="flex-1 px-3.5 py-2.5 rounded-xl border border-ink-200 text-xs font-mono text-ink-900 focus:outline-none focus:ring-2 focus:ring-ink-900/70"
+                      />
+                    </div>
+                  ) : f.type === "select" ? (
                     <select
                       value={form[f.key] ?? ""}
                       onChange={(e) => setForm({ ...form, [f.key]: e.target.value })}
@@ -300,30 +359,24 @@ export function TaxonomyManager({
                       placeholder={f.placeholder}
                       className="w-full px-3.5 py-2.5 rounded-xl border border-ink-200 text-xs text-ink-900 focus:outline-none focus:ring-2 focus:ring-ink-900/70"
                     />
-                  ) : f.type === "color" ? (
-                    <div className="flex items-center gap-3">
-                      <input
-                        type="color"
-                        value={form[f.key] || "#FCCF00"}
-                        onChange={(e) => setForm({ ...form, [f.key]: e.target.value })}
-                        className="w-10 h-10 rounded-lg border border-ink-200 cursor-pointer bg-white p-0.5"
-                      />
-                      <input
-                        type="text"
-                        value={form[f.key] ?? ""}
-                        onChange={(e) => setForm({ ...form, [f.key]: e.target.value })}
-                        placeholder="#FCCF00"
-                        className="flex-1 px-3.5 py-2.5 rounded-xl border border-ink-200 text-xs font-mono text-ink-900 focus:outline-none focus:ring-2 focus:ring-ink-900/70"
-                      />
-                    </div>
                   ) : (
                     <input
-                      type={f.type === "number" ? "number" : "text"}
+                      type={f.type === "number" || f.key === "sort_order" ? "number" : "text"}
                       value={form[f.key] ?? ""}
+                      onFocus={(e) => {
+                        if (f.type === "number" || f.key === "sort_order") {
+                          e.target.select();
+                        }
+                      }}
                       onChange={(e) =>
                         setForm({
                           ...form,
-                          [f.key]: f.type === "number" ? Number(e.target.value) : e.target.value,
+                          [f.key]:
+                            f.type === "number" || f.key === "sort_order"
+                              ? e.target.value === ""
+                                ? ""
+                                : Number(e.target.value)
+                              : e.target.value,
                         })
                       }
                       required={f.required}

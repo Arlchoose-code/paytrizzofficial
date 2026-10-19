@@ -423,7 +423,7 @@ export default function AdminTalentsPage() {
         emptyLabel="No skills yet."
         fields={[
           { key: "name", label: "Skill Name", type: "text", required: true, placeholder: "React.js" },
-          { key: "category", label: "Category", type: "text", required: true, placeholder: "frontend" },
+          { key: "category", label: "Category", type: "category", required: true, placeholder: "frontend" },
         ]}
         columns={[
           { key: "name", label: "Skill" },
@@ -444,7 +444,7 @@ export default function AdminTalentsPage() {
         fields={[
           { key: "key", label: "Specialty Key", type: "text", required: true, placeholder: "fullstack_architect" },
           { key: "name", label: "Display Name", type: "text", required: true, placeholder: "Full-Stack Architect" },
-          { key: "icon", label: "Icon (Lucide name)", type: "text", required: true, defaultValue: "Code", placeholder: "Code" },
+          { key: "icon", label: "Icon", type: "icon", required: true, defaultValue: "Code", placeholder: "Code" },
           { key: "description", label: "Description", type: "textarea", placeholder: "Brief summary of role scope" },
           { key: "sort_order", label: "Sort Order", type: "number", defaultValue: 0 },
         ]}
@@ -452,6 +452,7 @@ export default function AdminTalentsPage() {
           { key: "name", label: "Specialty" },
           { key: "key", label: "Key" },
           { key: "icon", label: "Icon" },
+          { key: "sort_order", label: "Sort Order" },
         ]}
       />
     )}
@@ -467,13 +468,14 @@ export default function AdminTalentsPage() {
         fields={[
           { key: "key", label: "Badge Key", type: "text", required: true, placeholder: "top_rated" },
           { key: "label", label: "Label", type: "text", required: true, placeholder: "Top Rated Specialist" },
-          { key: "color", label: "Color (Hex or Tailwind)", type: "text", required: true, defaultValue: "#F59E0B" },
-          { key: "icon", label: "Icon (Lucide name)", type: "text", required: true, defaultValue: "Star" },
+          { key: "color", label: "Color", type: "color", required: true, defaultValue: "#F59E0B" },
+          { key: "icon", label: "Icon", type: "icon", required: true, defaultValue: "Star" },
           { key: "sort_order", label: "Sort Order", type: "number", defaultValue: 0 },
         ]}
         columns={[
           { key: "label", label: "Badge" },
           { key: "key", label: "Key" },
+          { key: "icon", label: "Icon" },
           {
             key: "color",
             label: "Color",
@@ -487,6 +489,7 @@ export default function AdminTalentsPage() {
               </span>
             ),
           },
+          { key: "sort_order", label: "Sort Order" },
         ]}
       />
     )}

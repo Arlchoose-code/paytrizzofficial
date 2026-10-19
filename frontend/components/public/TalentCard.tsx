@@ -1,6 +1,7 @@
 import Link from "next/link";
-import { ArrowRight, Crown, Star, Shield, Cpu } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { ArrowRight } from "lucide-react";
+import { cn, getBadgeColorStyle } from "@/lib/utils";
+import { DynamicIcon } from "@/components/shared/DynamicIcon";
 
 export interface TalentBadgeData {
   id: number;
@@ -8,6 +9,7 @@ export interface TalentBadgeData {
   label: string;
   color: string;
   icon: string;
+  sort_order?: number;
 }
 
 export interface TalentCardProps {
@@ -23,20 +25,6 @@ export interface TalentCardProps {
   skills?: Array<{ skill_id: number; skill_name: string }>;
 }
 
-function renderBadgeIcon(iconName: string) {
-  switch (iconName) {
-    case "crown":
-      return <Crown className="w-3.5 h-3.5 fill-current" />;
-    case "star":
-      return <Star className="w-3.5 h-3.5 fill-current" />;
-    case "cpu":
-      return <Cpu className="w-3.5 h-3.5" />;
-    case "shield":
-    default:
-      return <Shield className="w-3.5 h-3.5" />;
-  }
-}
-
 export function TalentCard({
   slug,
   name,
@@ -47,7 +35,10 @@ export function TalentCard({
   specialties = [],
   skills = [],
 }: TalentCardProps) {
-  const topBadge = badges.length > 0 ? badges[0] : null;
+  const sortedBadges = [...badges].sort(
+    (a, b) => ((a as any).sort_order ?? 0) - ((b as any).sort_order ?? 0)
+  );
+  const topBadge = sortedBadges.length > 0 ? sortedBadges[0] : null;
 
   const availabilityColor =
     availability === "available"
@@ -88,14 +79,10 @@ export function TalentCard({
           {/* Badge chip pinned top-left */}
           {topBadge && (
             <div
-              className={cn(
-                "absolute top-3 left-3 px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1.5 shadow-sm",
-                topBadge.key === "ceo-founder"
-                  ? "bg-brand-500 text-ink-900 border border-brand-600"
-                  : "bg-ink-900 text-white"
-              )}
+              className="absolute top-3 left-3 px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1.5 shadow-sm border"
+              style={getBadgeColorStyle(topBadge.color)}
             >
-              {renderBadgeIcon(topBadge.icon)}
+              <DynamicIcon name={topBadge.icon} className="w-3.5 h-3.5" />
               <span>{topBadge.label}</span>
             </div>
           )}

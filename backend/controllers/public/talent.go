@@ -8,6 +8,7 @@ import (
 	"paytrizz-backend/structs"
 
 	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 )
 
 type TalentController struct{}
@@ -31,8 +32,12 @@ func (ctrl *TalentController) Index(c *gin.Context) {
 	availability := c.Query("availability")
 
 	db := config.DB.Model(&models.Talent{}).
-		Preload("Badges").
-		Preload("Specialties").
+		Preload("Badges", func(db *gorm.DB) *gorm.DB {
+			return db.Order("badges.sort_order ASC, badges.id ASC")
+		}).
+		Preload("Specialties", func(db *gorm.DB) *gorm.DB {
+			return db.Order("specialties.sort_order ASC, specialties.id ASC")
+		}).
 		Preload("Skills.Skill").
 		Preload("AvatarMedia").
 		Joins("JOIN users ON users.id = talents.user_id AND users.is_active = true").
@@ -146,8 +151,13 @@ func (ctrl *TalentController) Show(c *gin.Context) {
 	slug := c.Param("slug")
 
 	var t models.Talent
-	if err := config.DB.Preload("Badges").
-		Preload("Specialties").
+	if err := config.DB.
+		Preload("Badges", func(db *gorm.DB) *gorm.DB {
+			return db.Order("badges.sort_order ASC, badges.id ASC")
+		}).
+		Preload("Specialties", func(db *gorm.DB) *gorm.DB {
+			return db.Order("specialties.sort_order ASC, specialties.id ASC")
+		}).
 		Preload("Skills.Skill").
 		Preload("Experiences").
 		Preload("Educations").

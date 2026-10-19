@@ -56,7 +56,7 @@ func (ctrl *BadgeController) Store(c *gin.Context) {
 		return
 	}
 
-	key := strings.ToLower(strings.TrimSpace(req.Key))
+	key := strings.TrimSpace(req.Key)
 	key = strings.ReplaceAll(key, " ", "-")
 
 	var count int64
@@ -137,7 +137,7 @@ func (ctrl *BadgeController) Update(c *gin.Context) {
 		return
 	}
 
-	key := strings.ToLower(strings.TrimSpace(req.Key))
+	key := strings.TrimSpace(req.Key)
 	key = strings.ReplaceAll(key, " ", "-")
 
 	var count int64

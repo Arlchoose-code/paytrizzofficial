@@ -7,21 +7,22 @@ import { TalentInquiryForm } from "@/components/public/TalentInquiryForm";
 import { ProjectCard } from "@/components/public/ProjectCard";
 import { BlogCard } from "@/components/public/BlogCard";
 import {
-  ArrowRight,
   ArrowUpRight,
   BookOpen,
   Briefcase,
-  Crown,
   Download,
   FolderGit2,
   MapPin,
-  Shield,
-  Star,
-  Cpu,
   ExternalLink,
 } from "lucide-react";
+import { DynamicIcon } from "@/components/shared/DynamicIcon";
 import { TalentExperienceSection } from "@/components/public/TalentExperienceSection";
 import { TalentDetailSidebar } from "@/components/public/TalentDetailSidebar";
+import { getBadgeColorStyle } from "@/lib/utils";
+import {
+  TalentDetailContactButton,
+  TalentDetailAnchorPills,
+} from "@/components/public/TalentDetailAnchorPills";
 
 function renderPlatformIcon(platform: string) {
   const p = (platform || "").toLowerCase();
@@ -130,20 +131,6 @@ export async function generateMetadata({ params }: TalentDetailPageProps) {
   });
 }
 
-function renderBadgeIcon(iconName: string) {
-  switch (iconName) {
-    case "crown":
-      return <Crown className="w-4 h-4 fill-current" />;
-    case "star":
-      return <Star className="w-4 h-4 fill-current" />;
-    case "cpu":
-      return <Cpu className="w-4 h-4" />;
-    case "shield":
-    default:
-      return <Shield className="w-4 h-4" />;
-  }
-}
-
 export default async function TalentDetailPage({ params }: TalentDetailPageProps) {
   const { slug } = await params;
   const targetSlug = slug === "founder" ? "syahrul" : slug;
@@ -232,19 +219,21 @@ export default async function TalentDetailPage({ params }: TalentDetailPageProps
                 {/* Badges Chips */}
                 {talent.badges && talent.badges.length > 0 && (
                   <div className="flex flex-wrap gap-2">
-                    {talent.badges.map((b: any) => (
-                      <div
-                        key={b.id}
-                        className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-bold shadow-sm ${
-                          b.key === "ceo-founder"
-                            ? "bg-brand-500 text-ink-900 border border-brand-600"
-                            : "bg-ink-900 text-white"
-                        }`}
-                      >
-                        {renderBadgeIcon(b.icon)}
-                        <span>{b.label}</span>
-                      </div>
-                    ))}
+                    {[...talent.badges]
+                      .sort((a: any, b: any) => (a.sort_order ?? 0) - (b.sort_order ?? 0))
+                      .map((b: any) => {
+                        const badgeStyle = getBadgeColorStyle(b.color);
+                        return (
+                          <div
+                            key={b.id}
+                            className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-bold shadow-sm border"
+                            style={badgeStyle}
+                          >
+                            <DynamicIcon name={b.icon} className="w-4 h-4" />
+                            <span>{b.label}</span>
+                          </div>
+                        );
+                      })}
                   </div>
                 )}
 
@@ -294,15 +283,10 @@ export default async function TalentDetailPage({ params }: TalentDetailPageProps
 
                 {/* Action CTA Buttons */}
                 <div className="pt-2 flex flex-wrap items-center gap-3">
-                  {talent.contact_enabled !== false && (
-                    <a
-                      href="#contact"
-                      className="inline-flex items-center gap-2 bg-brand-500 text-ink-900 font-bold px-7 py-3 rounded-full text-sm hover:bg-brand-600 transition-all shadow-[0_4px_14px_rgba(252,207,0,0.35)]"
-                    >
-                      <span>Contact {talent.name}</span>
-                      <ArrowRight className="w-4 h-4" />
-                    </a>
-                  )}
+                  <TalentDetailContactButton
+                    talentName={talent.name}
+                    contactEnabled={talent.contact_enabled !== false}
+                  />
 
                   {talent.cv_is_public && talent.cv_media && (
                     <a
@@ -336,52 +320,13 @@ export default async function TalentDetailPage({ params }: TalentDetailPageProps
                 </div>
 
                 {/* Quick Navigation Anchor Pills */}
-                <div className="pt-4 flex flex-wrap items-center gap-2 border-t border-brand-200/60">
-                  <a
-                    href="#about"
-                    className="px-3.5 py-1.5 rounded-full text-xs font-bold bg-white text-ink-800 hover:bg-neutral-100 transition-colors shadow-xs"
-                  >
-                    Overview
-                  </a>
-                  <a
-                    href="#projects"
-                    className="px-3.5 py-1.5 rounded-full text-xs font-bold bg-brand-500 text-ink-900 border border-brand-600 hover:bg-brand-600 transition-colors shadow-xs flex items-center gap-1.5"
-                  >
-                    <FolderGit2 className="w-3.5 h-3.5" />
-                    <span>Projects ({talent.projects?.length || 0})</span>
-                  </a>
-                  <a
-                    href="#articles"
-                    className="px-3.5 py-1.5 rounded-full text-xs font-bold bg-brand-500 text-ink-900 border border-brand-600 hover:bg-brand-600 transition-colors shadow-xs flex items-center gap-1.5"
-                  >
-                    <BookOpen className="w-3.5 h-3.5" />
-                    <span>Articles ({talent.posts?.length || 0})</span>
-                  </a>
-                  {talent.skills && talent.skills.length > 0 && (
-                    <a
-                      href="#skills"
-                      className="px-3.5 py-1.5 rounded-full text-xs font-bold bg-white text-ink-800 hover:bg-neutral-100 transition-colors shadow-xs"
-                    >
-                      Tech Stack
-                    </a>
-                  )}
-                  {talent.experiences && talent.experiences.length > 0 && (
-                    <a
-                      href="#experience"
-                      className="px-3.5 py-1.5 rounded-full text-xs font-bold bg-white text-ink-800 hover:bg-neutral-100 transition-colors shadow-xs"
-                    >
-                      Experience
-                    </a>
-                  )}
-                  {talent.contact_enabled !== false && (
-                    <a
-                      href="#contact"
-                      className="px-3.5 py-1.5 rounded-full text-xs font-bold bg-white text-ink-800 hover:bg-neutral-100 transition-colors shadow-xs"
-                    >
-                      Contact
-                    </a>
-                  )}
-                </div>
+                <TalentDetailAnchorPills
+                  contactEnabled={talent.contact_enabled !== false}
+                  projectsCount={talent.projects?.length || 0}
+                  articlesCount={talent.posts?.length || 0}
+                  hasSkills={Boolean(talent.skills && talent.skills.length > 0)}
+                  hasExperiences={Boolean(talent.experiences && talent.experiences.length > 0)}
+                />
               </div>
             </div>
           </div>

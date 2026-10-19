@@ -15,6 +15,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"golang.org/x/crypto/bcrypt"
+	"gorm.io/gorm"
 )
 
 type TalentController struct {
@@ -51,8 +52,12 @@ func (ctrl *TalentController) Index(c *gin.Context) {
 
 	db := config.DB.Model(&models.Talent{}).
 		Preload("User").
-		Preload("Badges").
-		Preload("Specialties").
+		Preload("Badges", func(db *gorm.DB) *gorm.DB {
+			return db.Order("badges.sort_order ASC, badges.id ASC")
+		}).
+		Preload("Specialties", func(db *gorm.DB) *gorm.DB {
+			return db.Order("specialties.sort_order ASC, specialties.id ASC")
+		}).
 		Preload("AvatarMedia")
 
 	if query.Search != "" {
@@ -300,8 +305,12 @@ func (ctrl *TalentController) Show(c *gin.Context) {
 
 	var talent models.Talent
 	if err := config.DB.Preload("User").
-		Preload("Badges").
-		Preload("Specialties").
+		Preload("Badges", func(db *gorm.DB) *gorm.DB {
+			return db.Order("badges.sort_order ASC, badges.id ASC")
+		}).
+		Preload("Specialties", func(db *gorm.DB) *gorm.DB {
+			return db.Order("specialties.sort_order ASC, specialties.id ASC")
+		}).
 		Preload("Skills.Skill").
 		Preload("Experiences").
 		Preload("Educations").
