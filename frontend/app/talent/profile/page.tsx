@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { DashboardLayout } from "@/components/shared/DashboardLayout";
 import { toast } from "sonner";
@@ -31,7 +31,7 @@ type ProfileTab = "basic" | "bio" | "skills" | "experience" | "education" | "cer
 
 const MAX_SPECIALTIES = 3;
 
-export default function TalentProfileEditorPage() {
+function TalentProfileEditorContent() {
   const searchParams = useSearchParams();
   const tabParam = searchParams.get("tab");
   const initialTab: ProfileTab =
@@ -486,5 +486,19 @@ export default function TalentProfileEditorPage() {
         onSelect={handleCVSelect}
       />
     </DashboardLayout>
+  );
+}
+
+export default function TalentProfileEditorPage() {
+  return (
+    <Suspense
+      fallback={
+        <DashboardLayout role="talent" title="Edit Profile">
+          <div className="p-12 text-center text-xs text-neutral-400">Loading profile...</div>
+        </DashboardLayout>
+      }
+    >
+      <TalentProfileEditorContent />
+    </Suspense>
   );
 }

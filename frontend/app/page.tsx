@@ -18,7 +18,7 @@ import { getPublicSettings } from "@/lib/settings";
 import { Metadata } from "next";
 import { constructMetadata } from "@/lib/seo";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 15;
 
 export async function generateMetadata(): Promise<Metadata> {
   return constructMetadata({
@@ -157,14 +157,19 @@ export default async function HomePage() {
   let heroDesc =
     "PayTrizz connects ambitious tech teams with pre-vetted specialists in engineering, architecture, design systems, and digital growth. One elite bench of hand-picked creators ready to ship from day one.";
 
+  const apiBase = (process.env.API_URL || "http://localhost:8080/api").replace(/\/+$/, "");
+
   try {
+    const fetchOptions: RequestInit = {
+      next: { revalidate: 15, tags: ["home", "services", "faqs", "talents", "projects"] },
+    };
     const [servicesRes, faqsRes, talentsRes, projectsRes, specialtiesRes, homePageRes] = await Promise.all([
-      fetch("http://127.0.0.1:8080/api/services", { cache: "no-store" }).catch(() => null),
-      fetch("http://127.0.0.1:8080/api/faqs", { cache: "no-store" }).catch(() => null),
-      fetch("http://127.0.0.1:8080/api/talents?per_page=10", { cache: "no-store" }).catch(() => null),
-      fetch("http://127.0.0.1:8080/api/projects?per_page=1", { cache: "no-store" }).catch(() => null),
-      fetch("http://127.0.0.1:8080/api/specialties", { cache: "no-store" }).catch(() => null),
-      fetch("http://127.0.0.1:8080/api/pages/home", { cache: "no-store" }).catch(() => null),
+      fetch(`${apiBase}/services`, fetchOptions).catch(() => null),
+      fetch(`${apiBase}/faqs`, fetchOptions).catch(() => null),
+      fetch(`${apiBase}/talents?per_page=10`, fetchOptions).catch(() => null),
+      fetch(`${apiBase}/projects?per_page=1`, fetchOptions).catch(() => null),
+      fetch(`${apiBase}/specialties`, fetchOptions).catch(() => null),
+      fetch(`${apiBase}/pages/home`, fetchOptions).catch(() => null),
     ]);
 
     if (homePageRes && homePageRes.ok) {

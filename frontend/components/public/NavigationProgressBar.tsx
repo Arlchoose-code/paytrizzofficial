@@ -11,24 +11,17 @@ export function NavigationProgressBar() {
 
   // When pathname or searchParams change, mark transition complete
   useEffect(() => {
-    // Remove leaving class on route switch
-    if (typeof document !== "undefined") {
-      document.querySelectorAll(".page-is-leaving").forEach((el) => {
-        el.classList.remove("page-is-leaving");
-      });
-    }
-
     if (isNavigating) {
       setProgress(100);
       const timer = setTimeout(() => {
         setIsNavigating(false);
         setProgress(0);
-      }, 250);
+      }, 200);
       return () => clearTimeout(timer);
     }
   }, [pathname, searchParams, isNavigating]);
 
-  // Intercept clicks on internal links to provide instant visual feedback & smooth fade-out
+  // Intercept clicks on internal links to provide instant visual feedback
   useEffect(() => {
     const handleClick = (e: MouseEvent) => {
       // Find closest anchor
@@ -61,15 +54,9 @@ export function NavigationProgressBar() {
         return;
       }
 
-      // Smooth fade out current page content
-      const contentEl = document.querySelector("main") || document.querySelector(".page-transition");
-      if (contentEl) {
-        contentEl.classList.add("page-is-leaving");
-      }
-
       // Immediately start progress bar
       setIsNavigating(true);
-      setProgress(28);
+      setProgress(30);
     };
 
     document.addEventListener("click", handleClick, { capture: true });
