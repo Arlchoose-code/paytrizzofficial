@@ -36,29 +36,29 @@ export default async function TalentsPage({ searchParams }: SearchParamsProps) {
 
   const apiBase = (process.env.API_URL || "http://localhost:8080/api").replace(/\/+$/, "");
 
+  const url = new URL(`${apiBase}/talents`);
+  if (search) url.searchParams.set("search", search);
+  if (specialty && specialty !== "all") url.searchParams.set("specialty", specialty);
+  url.searchParams.set("page", page.toString());
+  url.searchParams.set("per_page", "12");
+
+  const [res, spRes, pageData, publicSettings] = await Promise.all([
+    fetch(url.toString(), { cache: "no-store" }).catch(() => null),
+    fetch(`${apiBase}/specialties`, { cache: "no-store" }).catch(() => null),
+    getPublicPage("talents"),
+    getPublicSettings().catch(() => undefined),
+  ]);
+
   let talents = [];
   let lastPage = 1;
-
-  try {
-    const url = new URL(`${apiBase}/talents`);
-    if (search) url.searchParams.set("search", search);
-    if (specialty && specialty !== "all") url.searchParams.set("specialty", specialty);
-    url.searchParams.set("page", page.toString());
-    url.searchParams.set("per_page", "12");
-
-    const res = await fetch(url.toString(), {
-      cache: "no-store",
-    }).catch(() => null);
-
-    if (res && res.ok) {
+  if (res && res.ok) {
+    try {
       const json = await res.json();
       if (json.data) {
         talents = json.data.data || [];
         lastPage = json.data.last_page || 1;
       }
-    }
-  } catch {
-    // Handled gracefully
+    } catch {}
   }
 
   let specialties = [
@@ -71,12 +71,8 @@ export default async function TalentsPage({ searchParams }: SearchParamsProps) {
     { key: "content-and-copywriting", label: "Copywriting" },
   ];
 
-  try {
-    const spRes = await fetch(`${apiBase}/specialties`, {
-      cache: "no-store",
-    }).catch(() => null);
-
-    if (spRes && spRes.ok) {
+  if (spRes && spRes.ok) {
+    try {
       const spJson = await spRes.json();
       if (Array.isArray(spJson?.data) && spJson.data.length > 0) {
         specialties = [
@@ -87,13 +83,8 @@ export default async function TalentsPage({ searchParams }: SearchParamsProps) {
           })),
         ];
       }
-    }
-  } catch {}
-
-  const [pageData, publicSettings] = await Promise.all([
-    getPublicPage("talents"),
-    getPublicSettings().catch(() => undefined),
-  ]);
+    } catch {}
+  }
 
   const hero = getHeroSection(pageData, {
     eyebrow: "VETTED SQUAD",

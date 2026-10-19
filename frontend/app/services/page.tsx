@@ -152,9 +152,10 @@ export default async function ServicesPage() {
   const apiBase = (process.env.API_URL || "http://localhost:8080/api").replace(/\/+$/, "");
   let displayServices = DETAILED_SERVICES;
 
-  const [pageData, publicSettings] = await Promise.all([
+  const [pageData, publicSettings, res] = await Promise.all([
     getPublicPage("services"),
     getPublicSettings().catch(() => undefined),
+    fetch(`${apiBase}/services`, { cache: "no-store" }).catch(() => null),
   ]);
 
   const hero = getHeroSection(pageData, {
@@ -164,12 +165,8 @@ export default async function ServicesPage() {
     description: "Cross-functional disciplines built to handle complete product life-cycles.",
   });
 
-  try {
-    const res = await fetch(`${apiBase}/services`, {
-      cache: "no-store",
-    }).catch(() => null);
-
-    if (res && res.ok) {
+  if (res && res.ok) {
+    try {
       const json = await res.json();
       if (Array.isArray(json?.data) && json.data.length > 0) {
         displayServices = json.data.map((ds: any, idx: number) => {
@@ -195,8 +192,8 @@ export default async function ServicesPage() {
           };
         });
       }
-    }
-  } catch {}
+    } catch {}
+  }
 
   return (
     <div className="min-h-screen flex flex-col bg-white">

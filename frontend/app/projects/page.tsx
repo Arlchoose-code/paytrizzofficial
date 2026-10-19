@@ -38,30 +38,30 @@ export default async function ProjectsDirectoryPage({ searchParams }: SearchPara
 
   const apiBase = (process.env.API_URL || "http://localhost:8080/api").replace(/\/+$/, "");
 
+  const url = new URL(`${apiBase}/projects`);
+  if (search) url.searchParams.set("search", search);
+  if (category && category !== "all") url.searchParams.set("category", category);
+  if (caseStudy === "true") url.searchParams.set("case_study", "true");
+  url.searchParams.set("page", page.toString());
+  url.searchParams.set("per_page", "9");
+
+  const [res, catRes, pageData, publicSettings] = await Promise.all([
+    fetch(url.toString(), { cache: "no-store" }).catch(() => null),
+    fetch(`${apiBase}/project-categories`, { cache: "no-store" }).catch(() => null),
+    getPublicPage("projects"),
+    getPublicSettings().catch(() => undefined),
+  ]);
+
   let projects = [];
   let lastPage = 1;
-
-  try {
-    const url = new URL(`${apiBase}/projects`);
-    if (search) url.searchParams.set("search", search);
-    if (category && category !== "all") url.searchParams.set("category", category);
-    if (caseStudy === "true") url.searchParams.set("case_study", "true");
-    url.searchParams.set("page", page.toString());
-    url.searchParams.set("per_page", "9");
-
-    const res = await fetch(url.toString(), {
-      cache: "no-store",
-    }).catch(() => null);
-
-    if (res && res.ok) {
+  if (res && res.ok) {
+    try {
       const json = await res.json();
       if (json.data) {
         projects = json.data.data || [];
         lastPage = json.data.last_page || 1;
       }
-    }
-  } catch {
-    // Handled gracefully
+    } catch {}
   }
 
   let categories = [
@@ -73,12 +73,8 @@ export default async function ProjectsDirectoryPage({ searchParams }: SearchPara
     { key: "brand-motion", label: "Brand & Motion" },
   ];
 
-  try {
-    const catRes = await fetch(`${apiBase}/project-categories`, {
-      cache: "no-store",
-    }).catch(() => null);
-
-    if (catRes && catRes.ok) {
+  if (catRes && catRes.ok) {
+    try {
       const catJson = await catRes.json();
       if (Array.isArray(catJson?.data) && catJson.data.length > 0) {
         categories = [
@@ -89,13 +85,8 @@ export default async function ProjectsDirectoryPage({ searchParams }: SearchPara
           })),
         ];
       }
-    }
-  } catch {}
-
-  const [pageData, publicSettings] = await Promise.all([
-    getPublicPage("projects"),
-    getPublicSettings().catch(() => undefined),
-  ]);
+    } catch {}
+  }
 
   const hero = getHeroSection(pageData, {
     eyebrow: "PORTFOLIO & CASE STUDIES",

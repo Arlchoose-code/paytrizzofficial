@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import type { Metadata } from "next";
 import { Plus_Jakarta_Sans } from "next/font/google";
 import { Toaster } from "sonner";
@@ -5,6 +6,7 @@ import "./globals.css";
 import { getPublicSettings } from "@/lib/settings";
 
 import { MaintenanceBanner } from "@/components/public/MaintenanceBanner";
+import { NavigationProgressBar } from "@/components/public/NavigationProgressBar";
 import { constructMetadata } from "@/lib/seo";
 
 const plusJakartaSans = Plus_Jakarta_Sans({
@@ -56,6 +58,9 @@ export default async function RootLayout({
   return (
     <html lang="en" className={`${plusJakartaSans.variable} h-full antialiased`}>
       <body className="min-h-full flex flex-col font-sans bg-white text-ink-900 selection:bg-brand-500 selection:text-ink-900">
+        <Suspense fallback={null}>
+          <NavigationProgressBar />
+        </Suspense>
         <MaintenanceBanner initialActive={maintenanceActive} />
         {children}
         <Toaster position="top-right" richColors closeButton />

@@ -22,6 +22,8 @@ const NAV_ITEMS: NavItem[] = [
   { label: "About", href: "/about" },
 ];
 
+let cachedNavbarSettings: SiteSettings | null = null;
+
 interface NavbarProps {
   initialSettings?: SiteSettings;
 }
@@ -29,19 +31,30 @@ interface NavbarProps {
 export function Navbar({ initialSettings }: NavbarProps) {
   const pathname = usePathname();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [settings, setSettings] = useState<SiteSettings | undefined>(initialSettings);
+  const [settings, setSettings] = useState<SiteSettings | undefined>(
+    () => initialSettings || cachedNavbarSettings || undefined
+  );
 
   useEffect(() => {
+    if (initialSettings) {
+      cachedNavbarSettings = initialSettings;
+    }
+    if (cachedNavbarSettings) {
+      setSettings(cachedNavbarSettings);
+      return;
+    }
+
     // Fetch dynamic public branding settings (logo, site name)
     fetch("/api/proxy/settings")
       .then((res) => (res.ok ? res.json() : null))
       .then((json) => {
         if (json?.data) {
+          cachedNavbarSettings = json.data;
           setSettings(json.data);
         }
       })
       .catch(() => {});
-  }, []);
+  }, [initialSettings]);
 
   // Auto-close mobile menu on route change
   useEffect(() => {
@@ -82,6 +95,7 @@ export function Navbar({ initialSettings }: NavbarProps) {
                 <Link
                   key={item.href}
                   href={item.href}
+                  prefetch={true}
                   className={cn(
                     "px-4 py-1.5 rounded-full text-sm font-medium transition-all duration-150",
                     isActive
@@ -99,6 +113,7 @@ export function Navbar({ initialSettings }: NavbarProps) {
           <div className="hidden md:flex items-center gap-3">
             <Link
               href="/contact"
+              prefetch={true}
               className="inline-flex items-center gap-1.5 bg-brand-500 text-ink-900 font-bold px-5 py-2 rounded-full text-sm hover:bg-brand-600 transition-all shadow-[0_4px_14px_rgba(252,207,0,0.35)] active:scale-[0.98]"
             >
               <span>Get in Touch</span>
@@ -145,6 +160,7 @@ export function Navbar({ initialSettings }: NavbarProps) {
                 <Link
                   key={item.href}
                   href={item.href}
+                  prefetch={true}
                   onClick={() => setMobileMenuOpen(false)}
                   className={cn(
                     "px-4 py-2.5 rounded-xl text-base font-medium transition-colors",
@@ -161,6 +177,7 @@ export function Navbar({ initialSettings }: NavbarProps) {
             <div className="pt-3 border-t border-neutral-100">
               <Link
                 href="/contact"
+                prefetch={true}
                 onClick={() => setMobileMenuOpen(false)}
                 className="w-full inline-flex items-center justify-center gap-2 bg-brand-500 text-ink-900 font-bold py-2.5 rounded-full text-sm hover:bg-brand-600 transition-all shadow-[0_4px_14px_rgba(252,207,0,0.35)]"
               >
