@@ -33,14 +33,17 @@ export function TalentDetailContactButton({
     }
   };
 
+  const firstName = talentName ? talentName.trim().split(" ")[0] : "Talent";
+
   return (
     <a
       href="#contact"
       onClick={handleClick}
-      className="inline-flex items-center gap-2 bg-brand-500 text-ink-900 font-bold px-7 py-3 rounded-full text-sm hover:bg-brand-600 transition-all shadow-[0_4px_14px_rgba(252,207,0,0.35)] active:scale-[0.98] cursor-pointer"
+      className="inline-flex items-center gap-2 bg-brand-500 text-ink-900 font-bold px-5 sm:px-7 py-3 rounded-full text-sm hover:bg-brand-600 transition-all shadow-[0_4px_14px_rgba(252,207,0,0.35)] active:scale-[0.98] cursor-pointer max-w-full"
+      title={`Contact ${talentName}`}
     >
-      <span>Contact {talentName}</span>
-      <ArrowRight className="w-4 h-4" />
+      <span className="truncate">Contact {firstName}</span>
+      <ArrowRight className="w-4 h-4 flex-shrink-0" />
     </a>
   );
 }

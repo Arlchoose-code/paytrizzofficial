@@ -89,11 +89,11 @@ export function TalentCard({
         </div>
 
         {/* Talent Info */}
-        <div className="space-y-1.5">
-          <h3 className="text-xl font-bold text-ink-900 group-hover:text-brand-600 transition-colors">
+        <div className="space-y-1.5 min-w-0">
+          <h3 className="text-xl font-bold text-ink-900 group-hover:text-brand-600 transition-colors truncate" title={name}>
             {name}
           </h3>
-          <p className="text-xs sm:text-sm text-ink-700 line-clamp-2 leading-relaxed">
+          <p className="text-xs sm:text-sm text-ink-700 line-clamp-2 leading-relaxed break-words">
             {headline}
           </p>
         </div>

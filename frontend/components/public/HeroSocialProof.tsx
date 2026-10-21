@@ -73,9 +73,9 @@ export function HeroSocialProof({ initialTalents = [], initialTotal = 3 }: HeroS
           +{total}
         </div>
       </div>
-      <div className="flex items-center gap-1.5 font-bold text-ink-900">
-        <CheckCircle2 className="w-4 h-4 text-brand-600" />
-        <span>{total}+ vetted talents ready for immediate squad onboarding</span>
+      <div className="flex items-center gap-1.5 font-bold text-ink-900 min-w-0">
+        <CheckCircle2 className="w-4 h-4 text-brand-600 shrink-0" />
+        <span className="text-xs sm:text-sm leading-snug">{total}+ vetted talents ready for immediate squad onboarding</span>
       </div>
     </div>
   );

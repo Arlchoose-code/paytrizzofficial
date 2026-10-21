@@ -238,11 +238,11 @@ export default async function TalentDetailPage({ params }: TalentDetailPageProps
                 )}
 
                 {/* Name & Headline */}
-                <div className="space-y-2">
-                  <h1 className="text-3xl sm:text-5xl font-extrabold tracking-tight text-ink-900">
+                <div className="space-y-2 min-w-0">
+                  <h1 className="text-3xl sm:text-5xl font-extrabold tracking-tight text-ink-900 break-words">
                     {talent.name}
                   </h1>
-                  <p className="text-lg sm:text-xl font-medium text-ink-700 leading-snug">
+                  <p className="text-lg sm:text-xl font-medium text-ink-700 leading-snug break-words">
                     {talent.headline}
                   </p>
                 </div>

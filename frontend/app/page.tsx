@@ -259,7 +259,7 @@ export default async function HomePage() {
           <div className="max-w-[1200px] mx-auto px-4 sm:px-6 relative z-10">
             <div className="grid lg:grid-cols-12 gap-12 lg:gap-10 items-center">
               {/* Left Column: Headline, Value Proposition, Action Buttons & Trust */}
-              <div className="lg:col-span-7 space-y-7 sm:space-y-9">
+              <div className="lg:col-span-7 space-y-7 sm:space-y-9 min-w-0 w-full">
                 {/* Headline with PayTrizz Yellow Stabilo Highlight */}
                 <h1 className="text-4xl sm:text-6xl lg:text-7xl font-black tracking-tight leading-[1.08] text-ink-900">
                   {heroHeadlineLine1}{" "}
@@ -305,7 +305,7 @@ export default async function HomePage() {
               </div>
 
               {/* Right Column: Dynamic Rotating Talent Showcase Card */}
-              <div className="lg:col-span-5 w-full max-w-md mx-auto lg:max-w-none pt-4 lg:pt-0 h-[455px]">
+              <div className="lg:col-span-5 w-full max-w-full sm:max-w-md mx-auto lg:max-w-none pt-4 lg:pt-0 min-h-[455px] min-w-0">
                 <HeroTalentShowcase initialTalents={showcaseTalents} />
               </div>
             </div>

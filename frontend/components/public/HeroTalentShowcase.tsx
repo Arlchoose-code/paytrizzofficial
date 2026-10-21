@@ -107,35 +107,35 @@ export function HeroTalentShowcase({ initialTalents = [] }: HeroTalentShowcasePr
 
   return (
     <div
-      className="relative w-full h-[455px] select-none"
+      className="relative w-full max-w-full select-none"
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
     >
-      {/* Background Stacking Cards (Physical Depth with strictly locked 455px height) */}
-      <div className="absolute inset-0 h-[455px] bg-neutral-100 border-2 border-neutral-300 rounded-[28px] rotate-2 scale-[0.98] translate-y-2.5" />
-      <div className="absolute inset-0 h-[455px] bg-brand-50 border-2 border-brand-200 rounded-[28px] -rotate-1 scale-[0.99] translate-y-1" />
+      {/* Background Stacking Cards (Physical Depth, mobile-safe rotation) */}
+      <div className="absolute inset-0 bg-neutral-100 border-2 border-neutral-300 rounded-[28px] rotate-1 sm:rotate-2 scale-[0.98] translate-y-2 pointer-events-none" />
+      <div className="absolute inset-0 bg-brand-50 border-2 border-brand-200 rounded-[28px] -rotate-0.5 sm:-rotate-1 scale-[0.99] translate-y-1 pointer-events-none" />
 
-      {/* Main Foreground Card (Snug 455px Height, zero empty bottom gap) */}
-      <div className="relative bg-white border-2 border-ink-900 rounded-[28px] p-5 sm:p-6 shadow-[0_12px_36px_rgba(29,32,35,0.08)] h-[455px] flex flex-col justify-between overflow-hidden">
+      {/* Main Foreground Card (Responsive height & robust flex wrapping) */}
+      <div className="relative bg-white border-2 border-ink-900 rounded-[28px] p-4 sm:p-6 shadow-[0_12px_36px_rgba(29,32,35,0.08)] min-h-[455px] flex flex-col justify-between overflow-hidden">
         {/* Section 1: Live Availability Pill & Vetted Badge */}
-        <div className="flex items-center justify-between gap-3 pb-2.5 border-b border-neutral-100 h-8 flex-shrink-0">
-          <div className="inline-flex items-center gap-2 px-2.5 py-0.5 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-800 text-[11px] font-bold">
-            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-            <span className="truncate max-w-[170px] sm:max-w-[210px]">
+        <div className="flex items-center justify-between gap-2 pb-2.5 border-b border-neutral-100 min-h-8 flex-shrink-0">
+          <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-800 text-[11px] font-bold min-w-0">
+            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse flex-shrink-0" />
+            <span className="truncate max-w-[150px] sm:max-w-[210px]">
               {activeTalent.availability || "Available for Sprints"}
             </span>
           </div>
 
           <div className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-brand-500 text-ink-900 text-[11px] font-extrabold border border-brand-600 shadow-2xs flex-shrink-0">
-            <ShieldCheck className="w-3.5 h-3.5" />
+            <ShieldCheck className="w-3.5 h-3.5 flex-shrink-0" />
             <span>Vetted Bench</span>
           </div>
         </div>
 
         {/* Section 2: Talent Identity & Avatar */}
-        <div className="flex items-start gap-3.5 h-[58px] flex-shrink-0">
+        <div className="flex items-start gap-3 sm:gap-3.5 py-1 min-h-[60px] flex-shrink-0">
           <div className="relative flex-shrink-0">
-            <div className="w-13 h-13 rounded-2xl bg-brand-500 text-ink-900 font-black text-lg flex items-center justify-center border-2 border-ink-900 shadow-xs overflow-hidden">
+            <div className="w-12 h-12 sm:w-13 sm:h-13 rounded-2xl bg-brand-500 text-ink-900 font-black text-base sm:text-lg flex items-center justify-center border-2 border-ink-900 shadow-xs overflow-hidden">
               {activeTalent.avatar_url ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
@@ -147,18 +147,18 @@ export function HeroTalentShowcase({ initialTalents = [] }: HeroTalentShowcasePr
                 <span>{activeTalent.avatar_initials || activeTalent.name.substring(0, 2).toUpperCase()}</span>
               )}
             </div>
-            <div className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-ink-900 text-brand-500 flex items-center justify-center border-2 border-white shadow-xs">
+            <div className="absolute bottom-0 right-0 w-4.5 h-4.5 sm:w-5 sm:h-5 rounded-full bg-ink-900 text-brand-500 flex items-center justify-center border-2 border-white shadow-xs">
               <CheckCircle2 className="w-3 h-3" />
             </div>
           </div>
 
           <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2">
-              <h3 className="text-lg font-black text-ink-900 tracking-tight truncate">
+            <div className="flex items-center gap-1.5 sm:gap-2 min-w-0">
+              <h3 className="text-base sm:text-lg font-black text-ink-900 tracking-tight truncate flex-1 min-w-0" title={activeTalent.name}>
                 {activeTalent.name}
               </h3>
               {activeTalent.badges && activeTalent.badges[0] && (
-                <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-md bg-neutral-100 text-neutral-800 border border-neutral-200 flex-shrink-0">
+                <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-md bg-neutral-100 text-neutral-800 border border-neutral-200 flex-shrink-0 whitespace-nowrap">
                   {activeTalent.badges[0]}
                 </span>
               )}
@@ -168,9 +168,9 @@ export function HeroTalentShowcase({ initialTalents = [] }: HeroTalentShowcasePr
               {activeTalent.headline}
             </p>
 
-            <div className="flex items-center gap-2 text-xs text-neutral-500 mt-1 font-medium truncate">
+            <div className="flex items-center gap-1.5 sm:gap-2 text-xs text-neutral-500 mt-1 font-medium min-w-0">
               {activeTalent.location && (
-                <span className="inline-flex items-center gap-1 truncate">
+                <span className="inline-flex items-center gap-1 min-w-0 truncate max-w-[90px] sm:max-w-[130px]">
                   <MapPin className="w-3 h-3 text-neutral-400 flex-shrink-0" />
                   <span className="truncate">{activeTalent.location}</span>
                 </span>
@@ -187,19 +187,19 @@ export function HeroTalentShowcase({ initialTalents = [] }: HeroTalentShowcasePr
           </div>
         </div>
 
-        {/* Section 3: Highlight / Bio Box (Comfortable 3-line clamp, exactly 74px tall) */}
-        <div className="h-[74px] flex items-center p-3 rounded-2xl bg-neutral-50 border border-neutral-200/80 overflow-hidden flex-shrink-0">
-          <p className="text-xs text-ink-800 font-medium leading-relaxed line-clamp-3">
+        {/* Section 3: Highlight / Bio Box */}
+        <div className="min-h-[68px] sm:min-h-[74px] flex items-center p-3 rounded-2xl bg-neutral-50 border border-neutral-200/80 overflow-hidden flex-shrink-0 my-1">
+          <p className="text-xs text-ink-800 font-medium leading-relaxed line-clamp-3 break-words">
             &ldquo;{activeTalent.highlight}&rdquo;
           </p>
         </div>
 
-        {/* Section 4: Tech Stack Chips (52px tall) */}
-        <div className="h-[52px] flex flex-col justify-center flex-shrink-0">
+        {/* Section 4: Tech Stack Chips */}
+        <div className="min-h-[48px] sm:min-h-[52px] flex flex-col justify-center flex-shrink-0 my-0.5">
           <div className="text-[10px] font-black uppercase tracking-wider text-neutral-400 mb-1">
             Core Tech Stack & Strengths
           </div>
-          <div className="flex flex-wrap gap-1.5 h-[30px] overflow-hidden items-center">
+          <div className="flex flex-wrap gap-1.5 max-h-[30px] overflow-hidden items-center">
             {(activeTalent.skills && activeTalent.skills.length > 0
               ? activeTalent.skills
               : ["Architecture", "Engineering", "Scale"]
@@ -208,7 +208,7 @@ export function HeroTalentShowcase({ initialTalents = [] }: HeroTalentShowcasePr
               .map((skill, idx) => (
                 <span
                   key={idx}
-                  className="px-2.5 py-0.5 rounded-lg text-xs font-bold bg-white text-ink-900 border border-neutral-200 shadow-2xs whitespace-nowrap"
+                  className="px-2 sm:px-2.5 py-0.5 rounded-lg text-xs font-bold bg-white text-ink-900 border border-neutral-200 shadow-2xs whitespace-nowrap"
                 >
                   {skill}
                 </span>
@@ -216,8 +216,8 @@ export function HeroTalentShowcase({ initialTalents = [] }: HeroTalentShowcasePr
           </div>
         </div>
 
-        {/* Section 5: Key Delivery Stats Row (54px tall) */}
-        <div className="h-[54px] grid grid-cols-3 gap-2 p-2 rounded-2xl bg-brand-50 border border-brand-200 text-center items-center flex-shrink-0">
+        {/* Section 5: Key Delivery Stats Row */}
+        <div className="min-h-[50px] sm:min-h-[54px] grid grid-cols-3 gap-1 sm:gap-2 p-2 rounded-2xl bg-brand-50 border border-brand-200 text-center items-center flex-shrink-0 my-0.5">
           <div>
             <div className="text-sm sm:text-base font-black text-ink-900 leading-none">100%</div>
             <div className="text-[9px] font-bold text-neutral-600 uppercase mt-0.5">Success Rate</div>
@@ -232,19 +232,19 @@ export function HeroTalentShowcase({ initialTalents = [] }: HeroTalentShowcasePr
           </div>
         </div>
 
-        {/* Section 6: Card Footer (View Profile & Controls, tightly aligned, zero bottom gap) */}
-        <div className="pt-2.5 border-t border-neutral-100 flex items-center justify-between gap-3 h-[44px] flex-shrink-0">
+        {/* Section 6: Card Footer (View Profile & Controls) */}
+        <div className="pt-2 sm:pt-2.5 border-t border-neutral-100 flex items-center justify-between gap-2 min-h-[44px] flex-shrink-0">
           <Link
             href={`/talents/${activeTalent.slug}`}
-            className="inline-flex items-center gap-1.5 bg-brand-500 hover:bg-brand-600 text-ink-900 font-extrabold text-xs px-4 py-2 rounded-full transition-all shadow-xs active:scale-[0.98]"
+            className="inline-flex items-center gap-1.5 bg-brand-500 hover:bg-brand-600 text-ink-900 font-extrabold text-xs px-3.5 sm:px-4 py-2 rounded-full transition-all shadow-xs active:scale-[0.98] flex-shrink-0"
           >
             <span>View Full Profile</span>
-            <ArrowRight className="w-3.5 h-3.5" />
+            <ArrowRight className="w-3.5 h-3.5 flex-shrink-0" />
           </Link>
 
           {/* Carousel Controls */}
-          <div className="flex items-center gap-1.5">
-            <div className="flex items-center gap-1 mr-1">
+          <div className="flex items-center gap-1 sm:gap-1.5 flex-shrink-0">
+            <div className="flex items-center gap-1 mr-0.5 sm:mr-1">
               {talents.map((_, idx) => (
                 <button
                   key={idx}
@@ -252,7 +252,7 @@ export function HeroTalentShowcase({ initialTalents = [] }: HeroTalentShowcasePr
                   aria-label={`Show talent ${idx + 1}`}
                   className={`h-2 rounded-full transition-all cursor-pointer ${
                     currentIndex === idx
-                      ? "w-5 bg-brand-500 border border-brand-600"
+                      ? "w-4 sm:w-5 bg-brand-500 border border-brand-600"
                       : "w-2 bg-neutral-200 hover:bg-neutral-300"
                   }`}
                 />
@@ -262,14 +262,14 @@ export function HeroTalentShowcase({ initialTalents = [] }: HeroTalentShowcasePr
             <button
               onClick={handlePrev}
               title="Previous talent"
-              className="w-6.5 h-6.5 rounded-full bg-neutral-100 hover:bg-neutral-200 text-neutral-700 flex items-center justify-center transition cursor-pointer border border-neutral-200"
+              className="w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-neutral-100 hover:bg-neutral-200 text-neutral-700 flex items-center justify-center transition cursor-pointer border border-neutral-200"
             >
               <ChevronLeft className="w-3.5 h-3.5" />
             </button>
             <button
               onClick={handleNext}
               title="Next talent"
-              className="w-6.5 h-6.5 rounded-full bg-neutral-100 hover:bg-neutral-200 text-neutral-700 flex items-center justify-center transition cursor-pointer border border-neutral-200"
+              className="w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-neutral-100 hover:bg-neutral-200 text-neutral-700 flex items-center justify-center transition cursor-pointer border border-neutral-200"
             >
               <ChevronRight className="w-3.5 h-3.5" />
             </button>
@@ -277,9 +277,9 @@ export function HeroTalentShowcase({ initialTalents = [] }: HeroTalentShowcasePr
         </div>
       </div>
 
-      {/* Floating Micro Badge at Bottom Right */}
-      <div className="absolute -bottom-2.5 -right-2 bg-ink-900 text-brand-500 font-extrabold text-[11px] px-3 py-1 rounded-full border-2 border-white shadow-md flex items-center gap-1.5 z-20">
-        <Zap className="w-3 h-3 text-brand-400 fill-brand-400" />
+      {/* Floating Micro Badge at Bottom Right (mobile-safe inside alignment) */}
+      <div className="absolute -bottom-2.5 right-1 sm:-right-2 bg-ink-900 text-brand-500 font-extrabold text-[10px] sm:text-[11px] px-2.5 sm:px-3 py-1 rounded-full border-2 border-white shadow-md flex items-center gap-1.5 z-20 pointer-events-none">
+        <Zap className="w-3 h-3 text-brand-400 fill-brand-400 flex-shrink-0" />
         <span>Live Vetted Talent Bench</span>
       </div>
     </div>
